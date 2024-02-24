@@ -14,7 +14,7 @@ class WebGLRenderer {
 
     }
 
-    addRectangleAtMousePosition(event, colorByBuildingID){
+    addRectangleAtMousePosition(event, colorByBuildingID) {
         const rect = this.canvas.getBoundingClientRect();
         let mouseX = event.clientX - rect.left;
         let mouseY = event.clientY - rect.top;
@@ -29,7 +29,7 @@ class WebGLRenderer {
         this.createBuildings();
         this.createBuildingsNames();
         this.resizeCanvas();
-        
+
         this.vsSource = `
         attribute vec4 aPosition;
         void main() {
@@ -115,7 +115,7 @@ class WebGLRenderer {
     updateColorByID(id, color) {
         this.rectInfos[id][3] = color;
     }
-    
+
     updateFrame() {
         this.redrawRectangles();
     }
@@ -159,19 +159,22 @@ class WebGLRenderer {
         }
     }
 
-    createBuildings(){
-        this.buildingIDMap.set(1, [0,0,0,1]);
-        this.buildingIDMap.set(2, [0,1,0,1]);
-        this.buildingIDMap.set(3, [0,0,1,1]);
+    createBuildings() {
+        this.buildingIDMap.set(1, [0, 0, 0, 1]);
+        this.buildingIDMap.set(2, [0, 0, 0, 1]);
+        this.buildingIDMap.set(3, [0.5, 0.5, 0, 1]);
+        this.buildingIDMap.set(4, [0, 0, 0, 1]);
+        this.buildingIDMap.set(5, [0, 0, 0, 1]);
+        this.buildingIDMap.set(6, [0, 0, 0, 1]);
     }
 
-    createBuildingsNames(){
+    createBuildingsNames() {
         this.buildingNameMap.set(1, "Furnace");
         this.buildingNameMap.set(2, "Miner");
-        this.buildingNameMap.set(3, "Constructor");
+        this.buildingNameMap.set(6, "Constructor");
     }
 
-    addSign(x, y, building, comment){
+    addSign(x, y, building, comment) {
 
         const divC = $(`<div></div>`);
         const div1 = $(`<div>${building}</div>`);
@@ -190,7 +193,7 @@ class WebGLRenderer {
 
         $('body').append(divC);
     }
-   
+
 }
 
 export default WebGLRenderer;

@@ -3,6 +3,7 @@ import UI from "./UI.js";
 import Storage from "./buildings/storage.js";
 import Furnace from "./buildings/furnace.js";
 import Miner from "./buildings/miner.js";
+import Constructor from "./buildings/constructor.js";
 
 class Main {
 
@@ -12,6 +13,8 @@ class Main {
         this.storgeUnit = new Storage();
         this.furnaces = [];
         this.miners = [];
+        this.storages = [];
+        this.constructors = [];
         this.connections = [];
         this.buildingsMap = new Map();
     }
@@ -43,7 +46,7 @@ $(document).ready(() => {
                 main.furnaces[main.webGLRenderer.counter] = new Furnace();
                 main.furnaces[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
                 main.furnaces[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-                main.furnaces[main.webGLRenderer.counter].setupFurnace(main.UI.craftID);
+                main.furnaces[main.webGLRenderer.counter].setupFurnace(main.UI.smeltID);
                 main.furnaces[main.webGLRenderer.counter].activateFurnace(main.webGLRenderer.counter - 1, main.webGLRenderer);
                 main.buildingsMap.set(main.webGLRenderer.counter, main.furnaces[main.webGLRenderer.counter]);
                 break;
@@ -56,6 +59,15 @@ $(document).ready(() => {
                 main.miners[main.webGLRenderer.counter].activateMiner(main.webGLRenderer.counter - 1, main.webGLRenderer, main.storgeUnit);
                 main.buildingsMap.set(main.webGLRenderer.counter, main.miners[main.webGLRenderer.counter]);
                 break;
+            case 3:
+                main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
+                main.storages[main.webGLRenderer.counter] = new Storage();
+                main.storages[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
+                main.storages[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
+                main.storages[main.webGLRenderer.counter].activateStorage();
+                main.buildingsMap.set(main.webGLRenderer.counter, main.storages[main.webGLRenderer.counter]);
+                break;
+
             case 4:
 
                 selectedBuilding = main.UI.getIDFromBuilding(event, main.webGLRenderer);
@@ -76,6 +88,18 @@ $(document).ready(() => {
                 main.buildingsMap.get(secondSelection + 1).inputConnection = main.buildingsMap.get(firstSelection + 1);
 
                 break;
+
+            case 6:
+
+                main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
+                main.constructors[main.webGLRenderer.counter] = new Constructor();
+                main.constructors[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
+                main.constructors[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
+                main.constructors[main.webGLRenderer.counter].setupConstructor(main.UI.craftID);
+                main.constructors[main.webGLRenderer.counter].activateConstructor(main.webGLRenderer.counter - 1, main.webGLRenderer);
+                main.buildingsMap.set(main.webGLRenderer.counter, main.constructors[main.webGLRenderer.counter]);
+
+                break;
         }
     });
 
@@ -86,7 +110,7 @@ $(document).ready(() => {
 
     setInterval(() => {
         main.webGLRenderer.updateFrame();
-    }, 50);
+    }, 100);
 
     setInterval(() => {
 

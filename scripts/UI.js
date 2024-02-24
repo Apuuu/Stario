@@ -5,7 +5,8 @@ class UI {
         this.mouseY = 0;
         this.BuildingID = 1;
         this.oreID = "iron";
-        this.craftID = "steel";
+        this.smeltID = "steel";
+        this.craftID = "copperwire";
 
         $(".funcbut").click((event) => {
             this.BuildingID = $(event.target).data("value");
@@ -16,6 +17,10 @@ class UI {
         });
 
         $(".smeltbut").click((event) => {
+            this.smeltID = $(event.target).data("value");
+        });
+
+        $(".craftbut").click((event) => {
             this.craftID = $(event.target).data("value");
         });
     }
@@ -45,7 +50,7 @@ class UI {
     }
 
     displayBuildingInformations(building) {
-        const whitelistKeys = ["name", "isRunning", "speed", "oreType", "upgradeLevel", "workload", "outputConnection", "inputConnection", "internalInventory"];
+        const whitelistKeys = ["productionMaterial", "name", "isRunning", "speed", "oreType", "upgradeLevel", "workload", "outputConnection", "inputConnection", "internalInventory"];
         const divC = $(`<div class="ui-displaybuildinginfos"></div>`);
         const closeButton = $("<button>Close</button>");
         const showInventory = $("<button>Open Inv</button>");
@@ -57,7 +62,6 @@ class UI {
             position: "absolute",
             left: building.posX + 30 + "px",
             top: building.posY - 70 + "px",
-            width: 120 + "px",
         });
 
         for (let key in building) {
@@ -74,10 +78,19 @@ class UI {
         });
 
         showInventory.on('click', function () {
-            for (let items in building.internalInventory) {
-                if (building.internalInventory.hasOwnProperty(items)) {
-                    const div = $(`<div>${items}: ${building.internalInventory[items]}</div>`);
-                    divC.append(div);
+            if (building.name != "Storage") {
+                for (let items in building.internalInventory) {
+                    if (building.internalInventory.hasOwnProperty(items)) {
+                        const div = $(`<div>${items}: ${building.internalInventory[items]}</div>`);
+                        divC.append(div);
+                    }
+                }
+            } else {
+                for (let items in building) {
+                    if (building.hasOwnProperty(items)) {
+                        const div = $(`<div>${items}: ${building[items]}</div>`);
+                        divC.append(div);
+                    }
                 }
             }
         });

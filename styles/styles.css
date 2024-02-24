@@ -12,8 +12,7 @@ canvas {
 .glCanvas-uiContainer-debuginfos {
     background-color: aliceblue;
     position: absolute;
-    height: 110px;
-    width: 500px;
+
     top: 10px;
     left: 10px;
     z-index: 1000;
@@ -40,4 +39,8 @@ canvas {
 .glCanvas-oretypeContainer {
     display: flex;
     flex-direction: column;
+}
+
+.funcbut{
+    background-color: aquamarine;
 }

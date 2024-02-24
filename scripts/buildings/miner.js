@@ -13,7 +13,7 @@ class Miner {
         this.oreType = null;
         this.upgradeLevel = 1;
         this.workload = null;
-        this.interalInventory = new Storage();
+        this.internalInventory = new Storage();
         this.outputConnection = null;
         this.transferSpeed = 1;
     }
@@ -32,15 +32,20 @@ class Miner {
             this.isRunning = true;
             if (this.progress < this.workload) {
                 this.interval = setInterval(() => {
-                    if (this.interalInventory[this.oreType] <= this.interalInventory.Capacity) {
+                    if (this.internalInventory[this.oreType] <= this.internalInventory.Capacity) {
                         this.progress = this.progress + this.speed;
                         if (this.progress >= this.workload) {
-                            this.interalInventory[this.oreType] += 1;
+                            this.internalInventory[this.oreType] += 1;
                             renderer.updateColorByID(id, [0, 0, 1, 1]);
                             this.progress = 0;
-                            if (this.outputConnection && this.interalInventory[this.oreType] > this.transferSpeed) {
-                                this.outputConnection.internalInventory[this.oreType] += this.transferSpeed;
-                                this.interalInventory[this.oreType] -= this.transferSpeed;
+                            if (this.outputConnection && this.internalInventory[this.oreType] > this.transferSpeed) {
+                                if (this.outputConnection.name != "Storage") {
+                                    this.outputConnection.internalInventory[this.oreType] += this.transferSpeed;
+                                    this.internalInventory[this.oreType] -= this.transferSpeed;
+                                } else {
+                                    this.outputConnection[this.oreType] += this.transferSpeed;
+                                    this.internalInventory[this.oreType] -= this.transferSpeed;
+                                }
                             }
                         } else {
                             renderer.updateColorByID(id, [0, this.progress / this.workload, 0, 1]);
