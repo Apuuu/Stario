@@ -1,0 +1,43 @@
+body {
+    margin: 0;
+    overflow: hidden;
+}
+
+canvas {
+    width: 100vw;
+    height: 100vh;
+    display: block;
+}
+
+.glCanvas-uiContainer-debuginfos {
+    background-color: aliceblue;
+    position: absolute;
+    height: 110px;
+    width: 500px;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.glCanvas-selectButtons {
+    display: flex;
+    flex-direction: column;
+    padding-left: 20px;
+}
+
+.glCanvas-storageContainer {
+    height: 100%;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.glCanvas-oretypeContainer {
+    display: flex;
+    flex-direction: column;
+}
