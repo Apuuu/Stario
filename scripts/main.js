@@ -106,6 +106,8 @@ $(document).ready(() => {
 
                     main.webGLRenderer.addLine(main.webGLRenderer.lineCounter,main.buildingsMap.get(firstSelection + 1).posX+12.5, main.buildingsMap.get(firstSelection + 1).posY+12.5, main.buildingsMap.get(secondSelection + 1).posX+12.5, main.buildingsMap.get(secondSelection + 1).posY+12.5, [1,0,0,1]);
 
+                    console.log(main.webGLRenderer.lineInfos);
+
                     selectionStep = 0;
                 }
 
