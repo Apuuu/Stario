@@ -5,7 +5,9 @@ class WebGLRenderer {
         this.canvas = document.getElementById('glCanvas');
         this.gl = this.canvas.getContext("webgl");
         this.counter = 0;
+        this.lineCounter = 0;
         this.rectInfos = [];
+        this.lineInfos = [];
         this.vsSource = "";
         this.fsSource = "";
         this.shaderProgram = null;
@@ -19,10 +21,10 @@ class WebGLRenderer {
         let mouseX = event.clientX - rect.left;
         let mouseY = event.clientY - rect.top;
 
-        mouseX = Math.round(mouseX / 50) * 50;
-        mouseY = Math.round(mouseY / 50) * 50;
+        mouseX = Math.round(mouseX / 25) * 25;
+        mouseY = Math.round(mouseY / 25) * 25;
 
-        this.addRectangle(this.counter, mouseX - 25, mouseY - 25, 100, colorByBuildingID);
+        this.addRectangle(this.counter, mouseX - 12.5, mouseY - 12.5, 50, colorByBuildingID);
     }
 
     initwebGLRenderer() {
@@ -65,11 +67,44 @@ class WebGLRenderer {
         this.gl.enableVertexAttribArray(positionAttributeLocation);
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 
-        this.gl.clearColor(0.3, 0.3, 0.3, 1.0);
+        //this.gl.clearColor(0.3, 0.3, 0.3, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
         this.gl.useProgram(this.shaderProgram);
 
+    }
+
+    setLine(id, x1, y1, x2, y2, color) {
+        const canvas = this.canvas;
+        const startX = ((x1 - canvas.width / 2) / (canvas.width / 2));
+        const startY = ((canvas.height / 2 - y1) / (canvas.height / 2));
+        const endX = ((x2 - canvas.width / 2) / (canvas.width / 2));
+        const endY = ((canvas.height / 2 - y2) / (canvas.height / 2));
+    
+        const vertices = [
+            startX, startY,
+            endX, endY
+        ];
+
+        this.lineInfos[id] = [x1, y1, x2, y2, color];
+    
+        this.updateColor(color);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+        //this.gl.drawArrays(this.gl.LINES, 0, 2);
+    }
+
+    addLine(id, x1, y1, x2, y2, color) {
+        this.setLine(id, x1, y1, x2, y2, color);
+        this.gl.drawArrays(this.gl.LINES, 0, 2);
+        this.lineCounter++;
+    }
+
+    redrawLines() {
+        this.lineCounter = 0;
+        for (let i = 0; i < this.lineInfos.length; i++) {
+            this.lineCounter = i;
+            this.addLine(i, this.lineInfos[i][0], this.lineInfos[i][1], this.lineInfos[i][2], this.lineInfos[i][3], this.lineInfos[i][4]);
+        }
     }
 
     addRectangle(id, x, y, size, color) {
@@ -100,7 +135,6 @@ class WebGLRenderer {
 
     redrawRectangles() {
         this.counter = 0;
-        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         for (let i = 0; i < this.rectInfos.length; i++) {
             this.counter = i;
             this.addRectangle(i, this.rectInfos[i][0], this.rectInfos[i][1], this.rectInfos[i][2], this.rectInfos[i][3]);
@@ -117,7 +151,9 @@ class WebGLRenderer {
     }
 
     updateFrame() {
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         this.redrawRectangles();
+        this.redrawLines();
     }
 
     createShader(type, source) {

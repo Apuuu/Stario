@@ -3,10 +3,19 @@ body {
     overflow: hidden;
 }
 
-canvas {
+.webgl-canvas {
+    position: absolute;
     width: 100vw;
     height: 100vh;
     display: block;
+}
+
+.twod-canvas {
+    position: absolute;
+    width: 100vw;
+    height: 100vh;
+    display: block;
+    background-color: rgb(148, 148, 148);
 }
 
 .glCanvas-uiContainer-debuginfos {
@@ -41,6 +50,183 @@ canvas {
     flex-direction: column;
 }
 
-.funcbut{
+.funcbut,
+.setbut {
     background-color: aquamarine;
+}
+
+.glCanvas-ui {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgb(87, 87, 87);
+    width: 400px;
+    height: 50px;
+    border-radius: 10px;
+    border: 1px solid black;
+    display: flex;
+    flex-direction: row;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.glCanvas-ui-element {
+    height: 100%;
+    width: 20%;
+    background-color: rgb(207, 207, 207);
+    border-radius: 12px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.glCanvas-ui-element-functions {
+    height: 100%;
+    width: 20%;
+    background-color: rgb(207, 207, 207);
+    border-radius: 12px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.glCanvas-ui-element-function {
+    background-color: rgb(149, 149, 149);
+    border-radius: 7px;
+}
+
+/* Miner selection */
+
+.glCanvas-ui-minerselection {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 600px;
+    background-color: rgb(188, 188, 188);
+    border-radius: 10px;
+    border: 1px solid black;
+}
+
+.glCanvas-ui-minerselection-title{
+    height: 50px;
+    background-color: rgb(87, 87, 87);
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+}
+
+.glCanvas-ui-minerselection-container{
+    height: 550px;
+    width: 100%;
+    column-count: 8; /* Number of columns */
+    column-fill: auto; /* Content will fill subsequent columns once the previous ones are filled */
+}
+
+.glCanvas-ui-minerselection-element{
+    width: 50px;
+    height: 50px;
+    background-color: rgb(207, 207, 207);
+    border-radius: 5px;
+    border: 10px solid rgb(179, 179, 179);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+}
+
+/* Furnace selection */
+
+.glCanvas-ui-furnaceselection {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 600px;
+    background-color: rgb(188, 188, 188);
+    border-radius: 10px;
+    border: 1px solid black;
+}
+
+.glCanvas-ui-furnaceselection-title{
+    height: 50px;
+    background-color: rgb(87, 87, 87);
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+}
+
+.glCanvas-ui-furnaceselection-container{
+    height: 550px;
+    width: 100%;
+    column-count: 8; /* Number of columns */
+    column-fill: auto; /* Content will fill subsequent columns once the previous ones are filled */
+}
+
+.glCanvas-ui-furnaceselection-element{
+    width: 50px;
+    height: 50px;
+    background-color: rgb(207, 207, 207);
+    border-radius: 5px;
+    border: 10px solid rgb(179, 179, 179);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+}
+
+/* Constructor selection */
+
+.glCanvas-ui-constructorselection {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    height: 600px;
+    background-color: rgb(188, 188, 188);
+    border-radius: 10px;
+    border: 1px solid black;
+}
+
+.glCanvas-ui-constructorselection-title{
+    height: 50px;
+    background-color: rgb(87, 87, 87);
+    border-radius: 10px 10px 0 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+}
+
+.glCanvas-ui-constructorselection-container{
+    height: 550px;
+    width: 100%;
+    column-count: 8; /* Number of columns */
+    column-fill: auto; /* Content will fill subsequent columns once the previous ones are filled */
+}
+
+.glCanvas-ui-constructorselection-element{
+    width: 50px;
+    height: 50px;
+    background-color: rgb(207, 207, 207);
+    border-radius: 5px;
+    border: 10px solid rgb(179, 179, 179);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
 }

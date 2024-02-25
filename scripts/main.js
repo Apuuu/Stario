@@ -4,6 +4,7 @@ import Storage from "./buildings/storage.js";
 import Furnace from "./buildings/furnace.js";
 import Miner from "./buildings/miner.js";
 import Constructor from "./buildings/constructor.js";
+import BackgroundDrawer from "./buildings/backgroundDrawer.js";
 
 class Main {
 
@@ -17,6 +18,8 @@ class Main {
         this.constructors = [];
         this.connections = [];
         this.buildingsMap = new Map();
+        this.BackgroundDrawer = new BackgroundDrawer();
+        this.showBackground = false;
     }
 
     init() {
@@ -30,10 +33,26 @@ class Main {
 $(document).ready(() => {
     const main = new Main();
     main.init();
+
+    //const canvas = document.getElementById("twodcanvas");
+    //const ctx = canvas.getContext("2d");
+
+    //main.BackgroundDrawer.createPerlinNoiseBackground(ctx, canvas.width,canvas.height);
+
     let selectedBuilding = null;
     let firstSelection = null;
     let secondSelection = null;
     let selectionStep = 0;
+
+    /*$(".setbut").click(function () {
+        if(!main.showBackground){
+            main.showBackground = true;
+            $("#twodcanvas").css("display", "block");
+        }else if(main.showBackground){
+            main.showBackground = false;
+            $("#twodcanvas").css("display", "none");
+        }
+    });*/
 
     $(".funcbut").click(function () {
         console.log(main.UI.BuildingID);
@@ -56,6 +75,7 @@ $(document).ready(() => {
                 main.miners[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
                 main.miners[main.webGLRenderer.counter].setupMiner(main.UI.oreID);
                 main.miners[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
+                main.miners[main.webGLRenderer.counter].setEfficiency(1);
                 main.miners[main.webGLRenderer.counter].activateMiner(main.webGLRenderer.counter - 1, main.webGLRenderer, main.storgeUnit);
                 main.buildingsMap.set(main.webGLRenderer.counter, main.miners[main.webGLRenderer.counter]);
                 break;
@@ -81,11 +101,13 @@ $(document).ready(() => {
                     selectionStep++;
                 } else if (selectionStep === 1) {
                     secondSelection = main.UI.getIDFromBuilding(event, main.webGLRenderer);
+                    main.buildingsMap.get(firstSelection + 1).outputConnection = main.buildingsMap.get(secondSelection + 1);
+                    main.buildingsMap.get(secondSelection + 1).inputConnection = main.buildingsMap.get(firstSelection + 1);
+
+                    main.webGLRenderer.addLine(main.webGLRenderer.lineCounter,main.buildingsMap.get(firstSelection + 1).posX+12.5, main.buildingsMap.get(firstSelection + 1).posY+12.5, main.buildingsMap.get(secondSelection + 1).posX+12.5, main.buildingsMap.get(secondSelection + 1).posY+12.5, [1,0,0,1]);
+
                     selectionStep = 0;
                 }
-
-                main.buildingsMap.get(firstSelection + 1).outputConnection = main.buildingsMap.get(secondSelection + 1);
-                main.buildingsMap.get(secondSelection + 1).inputConnection = main.buildingsMap.get(firstSelection + 1);
 
                 break;
 

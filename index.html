@@ -1,10 +1,13 @@
 <!DOCTYPE html>
+
 <head>
     <title>WebGL</title>
     <link rel="stylesheet" href="styles/styles.css">
 </head>
+
 <body>
-    <canvas id="glCanvas">
+    <canvas id="twodcanvas" class="twod-canvas"></canvas>
+    <canvas id="glCanvas" class="webgl-canvas">
     </canvas>
     <div class="glCanvas-uiContainer-debuginfos">
         <div class="glCanvas-MousePos">
@@ -13,29 +16,43 @@
             <div id="glCanvas-MousePos-elementcount">0</div>
             <div id="glCanvas-MousePos-elementselection">null</div>
         </div>
-        <div class="glCanvas-selectButtons">
-            <button class="funcbut" data-value="3">Storage</button>
-            <button class="funcbut" data-value="4">Selector</button>
-            <button class="funcbut" data-value="5">Connect</button>
-        </div>
-        <div class="glCanvas-oretypeContainer">
-            <button class="funcbut" data-value="2">Miner</button>
-            <button class="orebut" data-value="iron">Iron</button>
-            <button class="orebut" data-value="copper">Copper</button>
-            <button class="orebut" data-value="coal">Coal</button>
-        </div>
-        <div class="glCanvas-oretypeContainer">
-            <button class="funcbut" data-value="1">Furnace</button>
-            <button class="smeltbut" data-value="steel">Steel</button>
-            <button class="smeltbut" data-value="copperbar">Copper bar</button>
-            <button class="smeltbut" data-value="ironbar">Iron bar</button>
-        </div>
-        <div class="glCanvas-oretypeContainer">
-            <button class="funcbut" data-value="6">Constructor</button>
-            <button class="craftbut" data-value="copperwire">Copper Wire</button>
+    </div>
+    <div class="glCanvas-ui">
+        <div class="glCanvas-ui-element" data-value="1" data-type="2">Miner</div>
+        <div class="glCanvas-ui-element" data-value="2" data-type="1">Furnace</div>
+        <div class="glCanvas-ui-element" data-value="3" data-type="6">Constructor</div>
+        <div class="glCanvas-ui-element" data-value="4" data-type="3">Storage</div>
+        <div class="glCanvas-ui-element" data-value="5" data-type="4">Selector</div>
+        <div class="glCanvas-ui-element" data-value="6" data-type="5">Connector</div>
+        
+    </div>
+    <div class="glCanvas-ui-minerselection">
+        <div class="glCanvas-ui-minerselection-title">Miner</div>
+        <div class="glCanvas-ui-minerselection-container">
+            <div class="glCanvas-ui-minerselection-element" data-value="iron">Iron</div>
+            <div class="glCanvas-ui-minerselection-element" data-value="copper">Copper</div>
+            <div class="glCanvas-ui-minerselection-element" data-value="coal">Coal</div>
         </div>
     </div>
+    <div class="glCanvas-ui-furnaceselection">
+        <div class="glCanvas-ui-furnaceselection-title">Furnace</div>
+        <div class="glCanvas-ui-furnaceselection-container">
+            <div class="glCanvas-ui-furnaceselection-element" data-value="steel">Steel</div>
+            <div class="glCanvas-ui-furnaceselection-element" data-value="copperbar">Copper-Bar</div>
+            <div class="glCanvas-ui-furnaceselection-element" data-value="ironbar">Iron-Bar</div>
+        </div>
+    </div>
+    <div class="glCanvas-ui-constructorselection">
+        <div class="glCanvas-ui-constructorselection-title">Constructor</div>
+        <div class="glCanvas-ui-constructorselection-container">
+            <div class="glCanvas-ui-constructorselection-element" data-value="copperwire">Copper-wire</div>
+            <div class="glCanvas-ui-constructorselection-element" data-value="electricmotor">Electric-Motor</div>
+        </div>
+    </div>
+
     <script src="scripts/jquery.min.js"></script>
+    <script src="scripts/p5.js"></script>
     <script src="scripts/main.js" type="module"></script>
 </body>
+
 </html>

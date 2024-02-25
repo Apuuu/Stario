@@ -18,6 +18,10 @@ class Miner {
         this.transferSpeed = 1;
     }
 
+    setEfficiency(efficiency) {
+        this.speed = efficiency;
+    }
+
     setupMiner(oreName) {
 
         let ore = oreData.find(ore => ore.oretype === oreName);

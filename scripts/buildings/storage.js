@@ -9,6 +9,7 @@ class Storage {
         this.copperwire = 0;
         this.ironbar = 0;
         this.copperbar = 0;
+        this.electricmotor = 0;
         this.posX = null;
         this.posY = null;
         this.storageID = null;

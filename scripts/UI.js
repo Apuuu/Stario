@@ -12,17 +12,47 @@ class UI {
             this.BuildingID = $(event.target).data("value");
         });
 
-        $(".orebut").click((event) => {
+        $(".glCanvas-ui-minerselection-element").click((event) => {
             this.oreID = $(event.target).data("value");
         });
 
-        $(".smeltbut").click((event) => {
+        $(".glCanvas-ui-furnaceselection-element").click((event) => {
             this.smeltID = $(event.target).data("value");
         });
 
-        $(".craftbut").click((event) => {
+        $(".glCanvas-ui-constructorselection-element").click((event) => {
             this.craftID = $(event.target).data("value");
         });
+
+        $(".glCanvas-ui-element").click((event) => { 
+            this.BuildingID = $(event.target).data("type");
+            console.log(this.BuildingID);
+            switch($(event.target).data("value")){
+                case 1:
+                    $(".glCanvas-ui-minerselection").css("display", "block");
+                    break;
+                case 2:
+                    $(".glCanvas-ui-furnaceselection").css("display", "block");
+                    break;
+                case 3:
+                    $(".glCanvas-ui-constructorselection").css("display", "block");
+                    break;
+            }
+        });
+
+        $(".glCanvas-ui-minerselection-element").click((event) => { 
+            $(".glCanvas-ui-minerselection").css("display", "none");
+        });
+
+        $(".glCanvas-ui-furnaceselection-element").click((event) => { 
+            $(".glCanvas-ui-furnaceselection").css("display", "none");
+        });
+
+        $(".glCanvas-ui-constructorselection-element").click((event) => { 
+            $(".glCanvas-ui-constructorselection").css("display", "none");
+        });
+
+
     }
 
     changeVals(event, count) {
