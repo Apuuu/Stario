@@ -6,16 +6,16 @@ class WebGLRenderer {
         this.gl = this.canvas.getContext("webgl");
         this.counter = 0;
         this.lineCounter = 0;
+        this.terrainCounter = 0;
         this.rectInfos = [];
         this.lineInfos = [];
+        this.terrainInfos = [];
         this.textures = [];
         this.vsSource = "";
         this.fsSource = "";
         this.shaderProgram = null;
         this.buildingIDMap = new Map();
-        this.buildingNameMap = new Map();
         this.scale = 100;
-
     }
 
     async loadTexture(id, url) {
@@ -25,17 +25,17 @@ class WebGLRenderer {
             image.onload = resolve;
             image.onerror = reject;
         });
-        
+
         const texture = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-        
+
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-        
+
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
-        
+
         this.textures[id] = texture;
     }
 
@@ -43,14 +43,16 @@ class WebGLRenderer {
         this.createBuildings();
         this.resizeCanvas();
 
-        this.loadTexture("furnace","scripts/buildings/img/furnace/furnace.png");
-        this.loadTexture("miner","scripts/buildings/img/miner/miner.png");
-        this.loadTexture("constructor","scripts/buildings/img/constructor/constructor.png");
-        this.loadTexture("storage","scripts/buildings/img/storage/storage.png");
-        this.loadTexture("connection","scripts/buildings/img/functions/connection.png");
-        this.loadTexture("minerprogressbar","scripts/buildings/img/miner/miner3d.png");
-        this.loadTexture("furnaceprogressbar","scripts/buildings/img/furnace/furnace3d.png");
-        this.loadTexture("constructorprogressbar","scripts/buildings/img/constructor/constructor3d.png");
+        this.loadTexture("furnace", "scripts/buildings/img/furnace/furnace.png");
+        this.loadTexture("miner", "scripts/buildings/img/miner/miner.png");
+        this.loadTexture("constructor", "scripts/buildings/img/constructor/constructor.png");
+        this.loadTexture("storage", "scripts/buildings/img/storage/storage.png");
+        this.loadTexture("connection", "scripts/buildings/img/functions/connection.png");
+        this.loadTexture("minerprogressbar", "scripts/buildings/img/miner/miner3doc.png");
+        this.loadTexture("furnaceprogressbar", "scripts/buildings/img/furnace/furnace3doc.png");
+        this.loadTexture("constructorprogressbar", "scripts/buildings/img/constructor/constructor3d.png");
+        this.loadTexture("storageprogressbar", "scripts/buildings/img/storage/storage3doc.png");
+        this.loadTexture("terraingrass", "scripts/buildings/img/terrain/grass.png");
 
         this.vsSource = `
         attribute vec4 aPosition;
@@ -98,6 +100,51 @@ class WebGLRenderer {
 
     }
 
+    generateTerrain() {
+        let positions = [];
+        for (let i = 0; i < this.canvas.width / (this.scale / 2); i++) {
+            for (let j = 0; j < this.canvas.height / (this.scale / 2); j++) {
+                const x = i * (this.scale / 2);
+                const y = j * (this.scale / 2);
+                const size = this.scale;
+                const canvas = this.canvas;
+                const x1 = ((x - canvas.width / 2) / (canvas.width / 2));
+                const y1 = ((canvas.height / 2 - y) / (canvas.height / 2));
+                const x2 = (x1 + (size / canvas.width));
+                const y2 = (y1 - (size / canvas.height));
+
+                positions.push(
+                    x1, y1, 0.0, 0.0,
+                    x1, y2, 0.0, 1.0,
+                    x2, y1, 0.2, 0.0
+                );
+
+                positions.push(
+                    x1, y2, 0.0, 1.0,
+                    x2, y1, 0.2, 0.0,
+                    x2, y2, 0.2, 1.0
+                );
+
+                this.terrainCounter++;
+            }
+        }
+
+        this.terrainBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.terrainBuffer);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW);
+    }
+
+    drawTerrain() {
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.terrainBuffer);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["terraingrass"]);
+        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
+        this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
+        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aTexCoord');
+        this.gl.enableVertexAttribArray(texCoordAttributeLocation);
+        this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.terrainCounter * 6);
+    }
+
     setLine(id, x1, y1, x2, y2) {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["connection"]);
         const canvas = this.canvas;
@@ -105,18 +152,18 @@ class WebGLRenderer {
         const startY = ((canvas.height / 2 - y1) / (canvas.height / 2));
         const endX = ((x2 - canvas.width / 2) / (canvas.width / 2));
         const endY = ((canvas.height / 2 - y2) / (canvas.height / 2));
-    
+
         const vertices = [
             startX, startY,
             endX, endY
         ];
-    
+
         this.lineInfos[id] = [x1, y1, x2, y2];
-    
+
         const buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
-    
+
         const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
         this.gl.enableVertexAttribArray(positionAttributeLocation);
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
@@ -141,12 +188,12 @@ class WebGLRenderer {
         let mouseX = event.clientX - rect.left;
         let mouseY = event.clientY - rect.top;
 
-        mouseX = Math.round(mouseX / (this.scale/2)) * (this.scale/2);
-        mouseY = Math.round(mouseY / (this.scale/2)) * (this.scale/2);
+        mouseX = Math.round(mouseX / (this.scale / 2)) * (this.scale / 2);
+        mouseY = Math.round(mouseY / (this.scale / 2)) * (this.scale / 2);
 
         const prog = 0.0;
 
-        this.addRectangle(this.counter, mouseX - (this.scale/4), mouseY - (this.scale/4), this.scale, textureID, prog);
+        this.addRectangle(this.counter, mouseX - (this.scale / 4), mouseY - (this.scale / 4), this.scale, textureID, prog);
     }
 
     addRectangle(id, x, y, size, textureID, prog) {
@@ -166,10 +213,10 @@ class WebGLRenderer {
         this.rectInfos[id] = [x, y, size, textureID, prog];
 
         const position = [
-            x1, y1, 0.0+this.rectInfos[id][4], 0.0,
-            x1, y2, 0.0+this.rectInfos[id][4], 1,
-            x2, y1, 0.2+this.rectInfos[id][4], 0.0,
-            x2, y2, 0.2+this.rectInfos[id][4], 1
+            x1, y1, 0.0 + this.rectInfos[id][4], 0.0,
+            x1, y2, 0.0 + this.rectInfos[id][4], 1,
+            x2, y1, 0.2 + this.rectInfos[id][4], 0.0,
+            x2, y2, 0.2 + this.rectInfos[id][4], 1
         ];
 
         const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
@@ -177,7 +224,7 @@ class WebGLRenderer {
         const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aTexCoord');
         this.gl.enableVertexAttribArray(texCoordAttributeLocation);
         this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
-       
+
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(position), this.gl.STATIC_DRAW);
     }
 
@@ -189,21 +236,13 @@ class WebGLRenderer {
         }
     }
 
-    updateColor(color) {
-        const colorUniLoc = this.gl.getUniformLocation(this.shaderProgram, 'uColor');
-        this.gl.uniform4fv(colorUniLoc, color);
-    }
-
-    updateProgress(id, progress){
+    updateProgress(id, progress) {
         this.rectInfos[id][4] = progress;
-    }
-
-    updateColorByID(id, color) {
-        this.rectInfos[id][3] = color;
     }
 
     updateFrame() {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        //this.drawTerrain();
         this.redrawLines();
         this.redrawRectangles();
     }
@@ -219,8 +258,6 @@ class WebGLRenderer {
         }
         return shader;
     }
-
-
 
     createProgram(vertexShader, fragmentShader) {
         const program = this.gl.createProgram();
@@ -250,8 +287,8 @@ class WebGLRenderer {
     createBuildings() {
         this.buildingIDMap.set(1, "furnaceprogressbar"); //furnace
         this.buildingIDMap.set(2, "minerprogressbar"); //miner
-        this.buildingIDMap.set(3, "storage"); //storage
-        this.buildingIDMap.set(4, "miner"); 
+        this.buildingIDMap.set(3, "storageprogressbar"); //storage
+        this.buildingIDMap.set(4, "miner");
         this.buildingIDMap.set(5, "furnace");
         this.buildingIDMap.set(6, "constructorprogressbar"); //constructor
     }

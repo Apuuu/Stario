@@ -29,6 +29,12 @@ const oreData = [
         workload: 100,
         weight: 10000
     },
+    {
+        oretype: "arixenium",
+        workload: 1000,
+        weight: 100000
+    },
+    
 ];
 
 export default oreData;
