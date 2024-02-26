@@ -14,6 +14,7 @@ class WebGLRenderer {
         this.shaderProgram = null;
         this.buildingIDMap = new Map();
         this.buildingNameMap = new Map();
+        this.scale = 100;
 
     }
 
@@ -139,12 +140,12 @@ class WebGLRenderer {
         let mouseX = event.clientX - rect.left;
         let mouseY = event.clientY - rect.top;
 
-        mouseX = Math.round(mouseX / 25) * 25;
-        mouseY = Math.round(mouseY / 25) * 25;
+        mouseX = Math.round(mouseX / (this.scale/2)) * (this.scale/2);
+        mouseY = Math.round(mouseY / (this.scale/2)) * (this.scale/2);
 
         const prog = 0.0;
 
-        this.addRectangle(this.counter, mouseX - 12.5, mouseY - 12.5, 50, textureID, prog);
+        this.addRectangle(this.counter, mouseX - (this.scale/4), mouseY - (this.scale/4), this.scale, textureID, prog);
     }
 
     addRectangle(id, x, y, size, textureID, prog) {

@@ -104,7 +104,7 @@ $(document).ready(() => {
                     main.buildingsMap.get(firstSelection + 1).outputConnection = main.buildingsMap.get(secondSelection + 1);
                     main.buildingsMap.get(secondSelection + 1).inputConnection = main.buildingsMap.get(firstSelection + 1);
 
-                    main.webGLRenderer.addLine(main.webGLRenderer.lineCounter,main.buildingsMap.get(firstSelection + 1).posX+12.5, main.buildingsMap.get(firstSelection + 1).posY+12.5, main.buildingsMap.get(secondSelection + 1).posX+12.5, main.buildingsMap.get(secondSelection + 1).posY+12.5, [1,0,0,1]);
+                    main.webGLRenderer.addLine(main.webGLRenderer.lineCounter,main.buildingsMap.get(firstSelection + 1).posX+(main.webGLRenderer.scale/4), main.buildingsMap.get(firstSelection + 1).posY+(main.webGLRenderer.scale/4), main.buildingsMap.get(secondSelection + 1).posX+(main.webGLRenderer.scale/4), main.buildingsMap.get(secondSelection + 1).posY+(main.webGLRenderer.scale/4));
 
                     console.log(main.webGLRenderer.lineInfos);
 
