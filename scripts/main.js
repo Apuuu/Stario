@@ -37,25 +37,10 @@ $(document).ready(() => {
     const main = new Main();
     main.init();
 
-    //const canvas = document.getElementById("twodcanvas");
-    //const ctx = canvas.getContext("2d");
-
-    //main.BackgroundDrawer.createPerlinNoiseBackground(ctx, canvas.width,canvas.height);
-
     let selectedBuilding = null;
     let firstSelection = null;
     let secondSelection = null;
     let selectionStep = 0;
-
-    /*$(".setbut").click(function () {
-        if(!main.showBackground){
-            main.showBackground = true;
-            $("#twodcanvas").css("display", "block");
-        }else if(main.showBackground){
-            main.showBackground = false;
-            $("#twodcanvas").css("display", "none");
-        }
-    });*/
 
     $(".funcbut").click(function () {
         console.log(main.UI.BuildingID);
@@ -139,13 +124,7 @@ $(document).ready(() => {
     setInterval(() => {
         main.webGLRenderer.updateFrame();
     }, 100);
-
-    setInterval(() => {
-
-        // main.UI.updateStorageUI(main.storgeUnit);
-
-    }, 500);
-
+    
     $("#glCanvas").mousemove(function (event) {
         main.UI.changeVals(event, main.webGLRenderer.counter, main.storgeUnit);
     });
