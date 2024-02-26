@@ -50,6 +50,7 @@ class WebGLRenderer {
         this.loadTexture("connection","scripts/buildings/img/functions/connection.png");
         this.loadTexture("minerprogressbar","scripts/buildings/img/miner/miner3d.png");
         this.loadTexture("furnaceprogressbar","scripts/buildings/img/furnace/furnace3d.png");
+        this.loadTexture("constructorprogressbar","scripts/buildings/img/constructor/constructor3d.png");
 
         this.vsSource = `
         attribute vec4 aPosition;
@@ -252,7 +253,7 @@ class WebGLRenderer {
         this.buildingIDMap.set(3, "storage"); //storage
         this.buildingIDMap.set(4, "miner"); 
         this.buildingIDMap.set(5, "furnace");
-        this.buildingIDMap.set(6, "constructor"); //constructor
+        this.buildingIDMap.set(6, "constructorprogressbar"); //constructor
     }
 }
 

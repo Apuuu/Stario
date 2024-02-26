@@ -17,6 +17,15 @@ class Constructor {
         this.outputConnection = null;
         this.inputConnection = null;
         this.acceptTransfer = true;
+        this.progressSteps = 0;
+    }
+
+    setProgressSteps() {
+        let prog = this.progress / this.workload;
+        this.progressSteps = Math.floor(prog * 5) / 5;
+        if (this.progressSteps > 0.8) {
+            this.progressSteps = 0.8;
+        }
     }
 
     setupConstructor(materialName) {
@@ -27,7 +36,6 @@ class Constructor {
     }
 
     activateConstructor(id, renderer) {
-
         if (!this.isRunning) {
             this.isRunning = true;
             if (this.progress < this.workload) {
@@ -37,15 +45,15 @@ class Constructor {
                     });
                     if (allMaterialsPresent) {
                         this.progress = this.progress + this.speed;
+                        this.setProgressSteps();
+                        renderer.updateProgress(id, this.progressSteps);
                         if (this.progress >= this.workload) {
-                            renderer.updateColorByID(id, [0, 1, 0, 1]);
+
                             this.internalInventory[this.productionMaterial] += 1;
                             for (let material in this.craftingMaterials) {
                                 this.internalInventory[material] -= this.craftingMaterials[material];
                             }
                             this.progress = 0;
-                        } else {
-                            renderer.updateColorByID(id, [0, 0, this.progress / this.workload, 1]);
                         }
                     }
 
@@ -53,7 +61,7 @@ class Constructor {
                         if (this.outputConnection.name != "Storage" && this.internalInventory[this.productionMaterial] > 0) {
                             this.outputConnection.internalInventory[this.productionMaterial] += 1;
                             this.internalInventory[this.productionMaterial] -= 1;
-                        } else if (this.outputConnection.name === "Storage" && this.internalInventory[this.productionMaterial] > 0){
+                        } else if (this.outputConnection.name === "Storage" && this.internalInventory[this.productionMaterial] > 0) {
                             this.outputConnection[this.productionMaterial] += 1;
                             this.internalInventory[this.productionMaterial] -= 1;
                         }

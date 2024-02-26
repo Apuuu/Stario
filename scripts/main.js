@@ -2,7 +2,7 @@ import WebGLRenderer from "./webGLRenderer.js"
 import UI from "./UI.js";
 import Storage from "./buildings/storage.js";
 import Furnace from "./buildings/furnace.js";
-import Miner from "./buildings/miner.js";
+import Miner from "./buildings/oreHarvester.js";
 import Constructor from "./buildings/constructor.js";
 import BackgroundDrawer from "./buildings/backgroundDrawer.js";
 

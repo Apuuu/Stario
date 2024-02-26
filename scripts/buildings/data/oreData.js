@@ -21,7 +21,12 @@ const oreData = [
     },
     {
         oretype: "burakium",
-        workload: 1000,
+        workload: 100,
+        weight: 10000
+    },
+    {
+        oretype: "redksium",
+        workload: 100,
         weight: 10000
     },
 ];
