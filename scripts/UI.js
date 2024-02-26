@@ -1,3 +1,7 @@
+import oreData from "./buildings/data/oreData.js";
+import craftingData from "./buildings/data/craftingData.js";
+import smeltingData from "./buildings/data/smeltingData.js";
+
 class UI {
 
     constructor() {
@@ -12,22 +16,22 @@ class UI {
             this.BuildingID = $(event.target).data("value");
         });
 
-        $(".glCanvas-ui-minerselection-element").click((event) => {
+        $("body").on("click", ".glCanvas-ui-minerselection-element", (event) => {
             this.oreID = $(event.target).data("value");
         });
 
-        $(".glCanvas-ui-furnaceselection-element").click((event) => {
+        $("body").on("click", ".glCanvas-ui-furnaceselection-element", (event) => {
             this.smeltID = $(event.target).data("value");
         });
 
-        $(".glCanvas-ui-constructorselection-element").click((event) => {
+        $("body").on("click", ".glCanvas-ui-constructorselection-element", (event) => {
             this.craftID = $(event.target).data("value");
         });
-
-        $(".glCanvas-ui-element").click((event) => { 
+        
+        $(".glCanvas-ui-element").click((event) => {
             this.BuildingID = $(event.target).data("type");
             console.log(this.BuildingID);
-            switch($(event.target).data("value")){
+            switch ($(event.target).data("value")) {
                 case 1:
                     $(".glCanvas-ui-minerselection").css("display", "block");
                     break;
@@ -40,20 +44,49 @@ class UI {
             }
         });
 
-        $(".glCanvas-ui-minerselection-element").click((event) => { 
+        $("body").on("click", ".glCanvas-ui-minerselection-element", (event) => {
             $(".glCanvas-ui-minerselection").css("display", "none");
         });
 
-        $(".glCanvas-ui-furnaceselection-element").click((event) => { 
+        $("body").on("click", ".glCanvas-ui-furnaceselection-element", (event) => {
             $(".glCanvas-ui-furnaceselection").css("display", "none");
         });
 
-        $(".glCanvas-ui-constructorselection-element").click((event) => { 
+        $("body").on("click", ".glCanvas-ui-constructorselection-element", (event) => {
             $(".glCanvas-ui-constructorselection").css("display", "none");
         });
 
-
     }
+
+    addOresToMinerUI() {
+
+        const ores = oreData.map(ore => ore.oretype);
+
+        for (let i = 0; i < ores.length; i++) {
+            const div = $(`<div class="glCanvas-ui-minerselection-element" data-value="${ores[i]}">${ores[i]}</div>`);
+            $(".glCanvas-ui-minerselection-container").append(div);
+        }
+    }
+
+    addSmeltingToUI() {
+
+        const smeltingMaterials = smeltingData.map(smelting => smelting.outputMaterial);
+
+        for (let i = 0; i < smeltingMaterials.length; i++) {
+            const div = $(`<div class="glCanvas-ui-furnaceselection-element" data-value="${smeltingMaterials[i]}">${smeltingMaterials[i]}</div>`);
+            $(".glCanvas-ui-furnaceselection-container").append(div);
+        }
+    }
+
+    addCraftingToUI() {
+        const craftingMaterials = craftingData.map(craft => craft.outputMaterial);
+        for (let i = 0; i < craftingMaterials.length; i++) {
+            const div = $(`<div class="glCanvas-ui-constructorselection-element" data-value="${craftingMaterials[i]}">${craftingMaterials[i]}</div>`);
+            $(".glCanvas-ui-constructorselection-container").append(div);
+        }
+    }
+
+
 
     changeVals(event, count) {
         const rect = $("#glCanvas")[0].getBoundingClientRect();
@@ -72,7 +105,7 @@ class UI {
         this.mouseY = event.clientY - rect.top;
 
         for (let i = 0; i < renderer.rectInfos.length; i++) {
-            if (this.mouseX > renderer.rectInfos[i][0] && this.mouseX < renderer.rectInfos[i][0] + 25 && this.mouseY > renderer.rectInfos[i][1] && this.mouseY < renderer.rectInfos[i][1] + 25) {
+            if (this.mouseX > renderer.rectInfos[i][0] && this.mouseX < renderer.rectInfos[i][0] + 50 && this.mouseY > renderer.rectInfos[i][1] && this.mouseY < renderer.rectInfos[i][1] + 50) {
                 console.log(i);
                 return i;
             }

@@ -25,6 +25,9 @@ class Main {
     init() {
 
         this.webGLRenderer.initwebGLRenderer();
+        this.UI.addOresToMinerUI();
+        this.UI.addSmeltingToUI();
+        this.UI.addCraftingToUI();
 
     }
 
@@ -77,7 +80,7 @@ $(document).ready(() => {
                 main.miners[main.webGLRenderer.counter].setupMiner(main.UI.oreID);
                 main.miners[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
                 main.miners[main.webGLRenderer.counter].setEfficiency(1);
-                main.miners[main.webGLRenderer.counter].activateMiner(main.webGLRenderer.counter - 1, main.webGLRenderer, main.storgeUnit);
+                main.miners[main.webGLRenderer.counter].activateMiner(main.webGLRenderer.counter - 1, main.webGLRenderer);
                 main.buildingsMap.set(main.webGLRenderer.counter, main.miners[main.webGLRenderer.counter]);
                 break;
             case 3:

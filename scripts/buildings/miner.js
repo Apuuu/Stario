@@ -53,19 +53,21 @@ class Miner {
                             this.internalInventory[this.oreType] += 1;
                             this.progress = 0;
                         }
-                        if (this.outputConnection && this.internalInventory[this.oreType] > this.transferSpeed) {
-                            if (this.outputConnection.name != "Storage") {
-                                this.outputConnection.internalInventory[this.oreType] += this.transferSpeed;
-                                this.internalInventory[this.oreType] -= this.transferSpeed;
-                            } else {
-                                this.outputConnection[this.oreType] += this.transferSpeed;
-                                this.internalInventory[this.oreType] -= this.transferSpeed;
-                            }
-                        }
                     } else {
                         this.deactivateMiner();
                         clearInterval(this.interval);
                     }
+
+                    if (this.outputConnection && this.internalInventory[this.oreType] >= this.transferSpeed) {
+                        if (this.outputConnection.name != "Storage") {
+                            this.outputConnection.internalInventory[this.oreType] += this.transferSpeed;
+                            this.internalInventory[this.oreType] -= this.transferSpeed;
+                        } else {
+                            this.outputConnection[this.oreType] += this.transferSpeed;
+                            this.internalInventory[this.oreType] -= this.transferSpeed;
+                        }
+                    }
+
                 }, 100);
             }
         } else {

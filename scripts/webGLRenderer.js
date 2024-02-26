@@ -49,6 +49,7 @@ class WebGLRenderer {
         this.loadTexture("storage","scripts/buildings/img/storage/storage.png");
         this.loadTexture("connection","scripts/buildings/img/functions/connection.png");
         this.loadTexture("minerprogressbar","scripts/buildings/img/miner/miner3d.png");
+        this.loadTexture("furnaceprogressbar","scripts/buildings/img/furnace/furnace3d.png");
 
         this.vsSource = `
         attribute vec4 aPosition;
@@ -88,7 +89,7 @@ class WebGLRenderer {
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        
+
         this.gl.enable(this.gl.BLEND);
         this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
@@ -246,7 +247,7 @@ class WebGLRenderer {
     }
 
     createBuildings() {
-        this.buildingIDMap.set(1, "furnace"); //furnace
+        this.buildingIDMap.set(1, "furnaceprogressbar"); //furnace
         this.buildingIDMap.set(2, "minerprogressbar"); //miner
         this.buildingIDMap.set(3, "storage"); //storage
         this.buildingIDMap.set(4, "miner"); 

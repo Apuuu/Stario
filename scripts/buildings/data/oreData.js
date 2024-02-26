@@ -18,7 +18,12 @@ const oreData = [
         oretype: "water",
         workload: 10,
         weight: 10
-    }
+    },
+    {
+        oretype: "burakium",
+        workload: 1000,
+        weight: 10000
+    },
 ];
 
 export default oreData;

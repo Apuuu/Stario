@@ -18,6 +18,7 @@ class Furnace {
         this.outputConnection = null;
         this.inputConnection = null;
         this.acceptTransfer = true;
+        this.progressSteps = 0;
     }
 
     setupFurnace(materialName) {
@@ -26,6 +27,14 @@ class Furnace {
         this.workload = output.workload;
         this.craftingMaterials = output.inputMaterials;
         this.outputAmount = output.outputAmount;
+    }
+
+    setProgressSteps() {
+        let prog = this.progress / this.workload;
+        this.progressSteps = Math.floor(prog * 5) / 5;
+        if(this.progressSteps > 0.8) {
+            this.progressSteps = 0.8;
+        }
     }
 
     activateFurnace(id, renderer) {
@@ -39,15 +48,15 @@ class Furnace {
                     });
                     if (allMaterialsPresent) {
                         this.progress = this.progress + this.speed;
+                        this.setProgressSteps();
+                        renderer.updateProgress(id, this.progressSteps);
                         if (this.progress >= this.workload) {
-                            renderer.updateColorByID(id, [0, 1, 0, 1]);
+
                             this.internalInventory[this.productionMaterial] += this.outputAmount;
                             for (let material in this.craftingMaterials) {
                                 this.internalInventory[material] -= this.craftingMaterials[material];
                             }
                             this.progress = 0;
-                        } else {
-                            renderer.updateColorByID(id, [this.progress / this.workload, 0, 0, 1]);
                         }
                     }
 
