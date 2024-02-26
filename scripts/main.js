@@ -18,8 +18,7 @@ class Main {
         this.constructors = [];
         this.connections = [];
         this.buildingsMap = new Map();
-        this.BackgroundDrawer = new BackgroundDrawer();
-        this.showBackground = false;
+
     }
 
     init() {
@@ -124,7 +123,7 @@ $(document).ready(() => {
     setInterval(() => {
         main.webGLRenderer.updateFrame();
     }, 100);
-    
+
     $("#glCanvas").mousemove(function (event) {
         main.UI.changeVals(event, main.webGLRenderer.counter, main.storgeUnit);
     });

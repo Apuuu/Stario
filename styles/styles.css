@@ -15,7 +15,7 @@ body {
     width: 100vw;
     height: 100vh;
     display: block;
-    background-color: rgb(148, 148, 148);
+    background-color: rgb(0, 0, 0);
 }
 
 .glCanvas-uiContainer-debuginfos {
