@@ -58,6 +58,7 @@ $(document).ready(() => {
         console.log(main.UI.BuildingID);
     });
 
+    //TODO: Refactor this into something that doesnt look like shit
     $("#glCanvas").on('click', function (event) {
         switch (main.UI.BuildingID) {
             case 1:

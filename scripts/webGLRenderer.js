@@ -23,22 +23,19 @@ class WebGLRenderer {
         image.src = url;
         await new Promise((resolve, reject) => {
             image.onload = resolve;
-            image.onerror = reject; // Handle image loading errors
+            image.onerror = reject;
         });
         
         const texture = this.gl.createTexture();
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
         
-        // Set the parameters so we can render any size image.
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         
-        // Upload the image into the texture.
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
         
-        // Store the texture in the textures object with the given id
         this.textures[id] = texture;
     }
 
@@ -51,7 +48,7 @@ class WebGLRenderer {
         this.loadTexture("constructor","scripts/buildings/img/constructor/constructor.png");
         this.loadTexture("storage","scripts/buildings/img/storage/storage.png");
         this.loadTexture("connection","scripts/buildings/img/functions/connection.png");
-        this.loadTexture("minerprogressbar","scripts/buildings/img/miner/minerprog.png");
+        this.loadTexture("minerprogressbar","scripts/buildings/img/miner/miner3d.png");
 
         this.vsSource = `
         attribute vec4 aPosition;
@@ -90,8 +87,10 @@ class WebGLRenderer {
         this.gl.enableVertexAttribArray(positionAttributeLocation);
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 
-        //this.gl.clearColor(0.3, 0.3, 0.3, 1.0);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+        
+        this.gl.enable(this.gl.BLEND);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
         this.gl.useProgram(this.shaderProgram);
 
