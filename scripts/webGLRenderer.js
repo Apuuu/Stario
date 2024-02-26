@@ -43,7 +43,6 @@ class WebGLRenderer {
 
     initwebGLRenderer() {
         this.createBuildings();
-        this.createBuildingsNames();
         this.resizeCanvas();
 
         this.loadTexture("furnace","scripts/buildings/img/furnace/furnace.png");
@@ -51,6 +50,7 @@ class WebGLRenderer {
         this.loadTexture("constructor","scripts/buildings/img/constructor/constructor.png");
         this.loadTexture("storage","scripts/buildings/img/storage/storage.png");
         this.loadTexture("connection","scripts/buildings/img/functions/connection.png");
+        this.loadTexture("minerprogressbar","scripts/buildings/img/miner/minerprog.png");
 
         this.vsSource = `
         attribute vec4 aPosition;
@@ -142,16 +142,18 @@ class WebGLRenderer {
         mouseX = Math.round(mouseX / 25) * 25;
         mouseY = Math.round(mouseY / 25) * 25;
 
-        this.addRectangle(this.counter, mouseX - 12.5, mouseY - 12.5, 50, textureID);
+        const prog = 0.0;
+
+        this.addRectangle(this.counter, mouseX - 12.5, mouseY - 12.5, 50, textureID, prog);
     }
 
-    addRectangle(id, x, y, size, textureID) {
-        this.setRectangle(id, x, y, size, textureID);
+    addRectangle(id, x, y, size, textureID, prog) {
+        this.setRectangle(id, x, y, size, textureID, prog);
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
         this.counter++;
     }
 
-    setRectangle(id, x, y, size, textureID) {
+    setRectangle(id, x, y, size, textureID, prog) {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureID]);
         const canvas = this.canvas;
         const x1 = ((x - canvas.width / 2) / (canvas.width / 2));
@@ -159,14 +161,14 @@ class WebGLRenderer {
         const x2 = (x1 + (size / canvas.width));
         const y2 = (y1 - (size / canvas.height));
 
-        const position = [
-            x1, y1, 0.0, 0.0,
-            x1, y2, 0.0, 1.0,
-            x2, y1, 1.0, 0.0,
-            x2, y2, 1.0, 1.0
-        ];
+        this.rectInfos[id] = [x, y, size, textureID, prog];
 
-        this.rectInfos[id] = [x, y, size, textureID];
+        const position = [
+            x1, y1, 0.0+this.rectInfos[id][4], 0.0,
+            x1, y2, 0.0+this.rectInfos[id][4], 1,
+            x2, y1, 0.2+this.rectInfos[id][4], 0.0,
+            x2, y2, 0.2+this.rectInfos[id][4], 1
+        ];
 
         const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
@@ -181,13 +183,17 @@ class WebGLRenderer {
         this.counter = 0;
         for (let i = 0; i < this.rectInfos.length; i++) {
             this.counter = i;
-            this.addRectangle(i, this.rectInfos[i][0], this.rectInfos[i][1], this.rectInfos[i][2], this.rectInfos[i][3]);
+            this.addRectangle(i, this.rectInfos[i][0], this.rectInfos[i][1], this.rectInfos[i][2], this.rectInfos[i][3], this.rectInfos[i][4]);
         }
     }
 
     updateColor(color) {
         const colorUniLoc = this.gl.getUniformLocation(this.shaderProgram, 'uColor');
         this.gl.uniform4fv(colorUniLoc, color);
+    }
+
+    updateProgress(id, progress){
+        this.rectInfos[id][4] = progress;
     }
 
     updateColorByID(id, color) {
@@ -241,39 +247,12 @@ class WebGLRenderer {
 
     createBuildings() {
         this.buildingIDMap.set(1, "furnace"); //furnace
-        this.buildingIDMap.set(2, "miner"); //miner
+        this.buildingIDMap.set(2, "minerprogressbar"); //miner
         this.buildingIDMap.set(3, "storage"); //storage
         this.buildingIDMap.set(4, "miner"); 
         this.buildingIDMap.set(5, "furnace");
         this.buildingIDMap.set(6, "constructor"); //constructor
     }
-
-    createBuildingsNames() {
-        this.buildingNameMap.set(1, "Furnace");
-        this.buildingNameMap.set(2, "Miner");
-        this.buildingNameMap.set(6, "Constructor");
-    }
-
-    addSign(x, y, building, comment) {
-
-        const divC = $(`<div></div>`);
-        const div1 = $(`<div>${building}</div>`);
-        const div2 = $(`<div>${comment}</div>`);
-
-        divC.css({
-            position: 'absolute',
-            left: x + 'px',
-            top: y + 'px',
-            width: 50 + 'px',
-            height: 50 + 'px',
-        });
-
-        divC.append(div1);
-        divC.append(div2);
-
-        $('body').append(divC);
-    }
-
 }
 
 export default WebGLRenderer;

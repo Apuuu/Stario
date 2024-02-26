@@ -13,6 +13,11 @@ const oreData = [
         oretype: "coal",
         workload: 50,
         weight: 50
+    },
+    {
+        oretype: "water",
+        workload: 10,
+        weight: 10
     }
 ];
 

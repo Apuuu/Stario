@@ -10,6 +10,7 @@ class Storage {
         this.ironbar = 0;
         this.copperbar = 0;
         this.electricmotor = 0;
+        this.water = 0;
         this.posX = null;
         this.posY = null;
         this.storageID = null;
@@ -27,8 +28,7 @@ class Storage {
     }
 
     activateStorage() {
-        const resources = ['iron', 'copper', 'coal', 'steel'];
-
+        const resources = ['iron', 'copper', 'coal', 'steel', 'copperwire', 'ironbar', 'copperbar', 'electricmotor', 'water'];
         this.interval = setInterval(() => {
             if (this.outputConnection) {
                 if (this.outputConnection.name === "Storage") {

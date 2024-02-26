@@ -72,7 +72,7 @@ class UI {
         this.mouseY = event.clientY - rect.top;
 
         for (let i = 0; i < renderer.rectInfos.length; i++) {
-            if (this.mouseX > renderer.rectInfos[i][0] && this.mouseX < renderer.rectInfos[i][0] + 50 && this.mouseY > renderer.rectInfos[i][1] && this.mouseY < renderer.rectInfos[i][1] + 50) {
+            if (this.mouseX > renderer.rectInfos[i][0] && this.mouseX < renderer.rectInfos[i][0] + 25 && this.mouseY > renderer.rectInfos[i][1] && this.mouseY < renderer.rectInfos[i][1] + 25) {
                 console.log(i);
                 return i;
             }

@@ -16,6 +16,7 @@ class Miner {
         this.internalInventory = new Storage();
         this.outputConnection = null;
         this.transferSpeed = 1;
+        this.progressSteps = 0;
     }
 
     setEfficiency(efficiency) {
@@ -31,6 +32,14 @@ class Miner {
 
     }
 
+    setProgressSteps() {
+        let prog = this.progress / this.workload;
+        this.progressSteps = Math.floor(prog * 5) / 5;
+        if(this.progressSteps > 0.8) {
+            this.progressSteps = 0.8;
+        }
+    }
+
     activateMiner(id, renderer) {
         if (!this.isRunning) {
             this.isRunning = true;
@@ -38,26 +47,24 @@ class Miner {
                 this.interval = setInterval(() => {
                     if (this.internalInventory[this.oreType] <= this.internalInventory.Capacity) {
                         this.progress = this.progress + this.speed;
+                        this.setProgressSteps();
+                        renderer.updateProgress(id, this.progressSteps);
                         if (this.progress >= this.workload) {
                             this.internalInventory[this.oreType] += 1;
-                            renderer.updateColorByID(id, [0, 0, 1, 1]);
                             this.progress = 0;
-                            if (this.outputConnection && this.internalInventory[this.oreType] > this.transferSpeed) {
-                                if (this.outputConnection.name != "Storage") {
-                                    this.outputConnection.internalInventory[this.oreType] += this.transferSpeed;
-                                    this.internalInventory[this.oreType] -= this.transferSpeed;
-                                } else {
-                                    this.outputConnection[this.oreType] += this.transferSpeed;
-                                    this.internalInventory[this.oreType] -= this.transferSpeed;
-                                }
+                        }
+                        if (this.outputConnection && this.internalInventory[this.oreType] > this.transferSpeed) {
+                            if (this.outputConnection.name != "Storage") {
+                                this.outputConnection.internalInventory[this.oreType] += this.transferSpeed;
+                                this.internalInventory[this.oreType] -= this.transferSpeed;
+                            } else {
+                                this.outputConnection[this.oreType] += this.transferSpeed;
+                                this.internalInventory[this.oreType] -= this.transferSpeed;
                             }
-                        } else {
-                            renderer.updateColorByID(id, [0, this.progress / this.workload, 0, 1]);
                         }
                     } else {
                         this.deactivateMiner();
                         clearInterval(this.interval);
-                        renderer.updateColorByID(id, [1, 0, 0, 1]);
                     }
                 }, 100);
             }
