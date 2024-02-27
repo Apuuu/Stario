@@ -3,15 +3,15 @@ import craftingData from "./data/craftingData.js";
 import smeltingData from "./data/smeltingData.js";
 
 class Storage {
-    constructor() {
-        this.name = "Storage"
-        this.Capacity = 100;
-        this.posX = null;
-        this.posY = null;
-        this.storageID = null;
-        this.inputConnection = null;
-        this.outputConnection = null;
-        this.resources = [];
+    constructor(data = {}) {
+        this.name = data.name || "Storage";
+        this.Capacity = data.Capacity || 100;
+        this.posX = data.posX || null;
+        this.posY = data.posY || null;
+        this.storageID = data.storageID || null;
+        this.inputConnection = data.inputConnection || null;
+        this.outputConnection = data.outputConnection || null;
+        this.resources = data.resources || [];
         this.setupStorage();
     }
 

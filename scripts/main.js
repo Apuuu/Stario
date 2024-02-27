@@ -4,7 +4,7 @@ import Storage from "./buildings/storage.js";
 import Furnace from "./buildings/furnace.js";
 import Miner from "./buildings/oreHarvester.js";
 import Constructor from "./buildings/constructor.js";
-import BackgroundDrawer from "./buildings/backgroundDrawer.js";
+import saveGameManager from "./saveGameManager.js";
 
 class Main {
 
@@ -24,6 +24,10 @@ class Main {
     init() {
 
         this.webGLRenderer.initwebGLRenderer();
+        this.webGLRenderer.generateTerrain();
+        //console.log(this.webGLRenderer.terrainInfos);
+        //this.webGLRenderer.addTerrain(0, 100, 100, 50, "furnaceprogressbar")
+        //console.log(this.webGLRenderer.terrainInfos);
         this.UI.addOresToMinerUI();
         this.UI.addSmeltingToUI();
         this.UI.addCraftingToUI();
@@ -45,6 +49,25 @@ $(document).ready(() => {
         console.log(main.UI.BuildingID);
     });
 
+    $("#saveBut").click(function () {
+        saveGameState();
+        console.log("Gamestate saved");
+    });
+
+    $("#loadBut").click(function () {
+        loadGameState();
+        console.log("Gamestate loaded");
+    });
+
+    $("#resetBut").click(function () {
+        clearGameState();
+        console.log("Gamestate reseted");
+    });
+
+    $("#printMap").click(function () {
+        console.log(main.buildingsMap);
+    });
+
     //TODO: Refactor this into something that doesnt look like shit
     $("#glCanvas").on('click', function (event) {
         switch (main.UI.BuildingID) {
@@ -58,6 +81,7 @@ $(document).ready(() => {
                 main.buildingsMap.set(main.webGLRenderer.counter, main.furnaces[main.webGLRenderer.counter]);
                 break;
             case 2:
+                console.log(main.miners);
                 main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
                 main.miners[main.webGLRenderer.counter] = new Miner();
                 main.miners[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
@@ -77,7 +101,7 @@ $(document).ready(() => {
                 break;
 
             case 4:
-
+                console.log(main.miners);
                 selectedBuilding = main.UI.getIDFromBuilding(event, main.webGLRenderer);
                 main.UI.displayBuildingInformations(main.buildingsMap.get(selectedBuilding + 1));
                 break;
@@ -92,7 +116,7 @@ $(document).ready(() => {
                     main.buildingsMap.get(firstSelection + 1).outputConnection = main.buildingsMap.get(secondSelection + 1);
                     main.buildingsMap.get(secondSelection + 1).inputConnection = main.buildingsMap.get(firstSelection + 1);
 
-                    main.webGLRenderer.addLine(main.webGLRenderer.lineCounter,main.buildingsMap.get(firstSelection + 1).posX+(main.webGLRenderer.scale/4), main.buildingsMap.get(firstSelection + 1).posY+(main.webGLRenderer.scale/4), main.buildingsMap.get(secondSelection + 1).posX+(main.webGLRenderer.scale/4), main.buildingsMap.get(secondSelection + 1).posY+(main.webGLRenderer.scale/4));
+                    main.webGLRenderer.addLine(main.webGLRenderer.lineCounter, main.buildingsMap.get(firstSelection + 1).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(firstSelection + 1).posY + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection + 1).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection + 1).posY + (main.webGLRenderer.scale / 4));
 
                     console.log(main.webGLRenderer.lineInfos);
 
@@ -127,6 +151,106 @@ $(document).ready(() => {
     $("#glCanvas").mousemove(function (event) {
         main.UI.changeVals(event, main.webGLRenderer.counter, main.storgeUnit);
     });
+
+    function saveGameState() {
+
+        console.log(main.buildingsMap);
+
+        const gameState = {
+            webglbuildings: main.webGLRenderer.rectInfos,
+            miners: main.miners,
+            furnaces: main.furnaces,
+            storages: main.storages,
+            constructors: main.constructors,
+        };
+
+        const gameStateStr = JSON.stringify(gameState);
+
+        localStorage.setItem('gameState', gameStateStr);
+    }
+
+    function loadGameState() {
+
+        const gameStateStr = localStorage.getItem('gameState');
+
+        if (gameStateStr) {
+            const gameState = JSON.parse(gameStateStr);
+
+            main.webGLRenderer.rectInfos = gameState.webglbuildings;
+
+            if (gameState.miners) {
+                main.miners = gameState.miners.map((data, index) => {
+                    if (index === 0) {
+                        return null;
+                    } else if (data !== null) {
+                        const newMiner = new Miner(data);
+                        newMiner.internalInventory = data.internalInventory;
+                        newMiner.isRunning = false;
+                        newMiner.activateMiner(index - 1, main.webGLRenderer);
+                        main.buildingsMap.set(index, newMiner);
+                        return newMiner
+                    }
+                });
+            } else {
+                main.miners = [];
+            }
+
+            if (gameState.furnaces) {
+                main.furnaces = gameState.furnaces.map((data, index) => {
+                    if (index === 0) {
+                        return null;
+                    } else if (data !== null) {
+                        const newFurnace = new Furnace(data);
+                        newFurnace.internalInventory = data.internalInventory;
+                        newFurnace.isRunning = false;
+                        newFurnace.activateFurnace(index - 1, main.webGLRenderer);
+                        main.buildingsMap.set(index, newFurnace);
+                        return newFurnace
+                    }
+                });
+            } else {
+                main.furnaces = [];
+            }
+
+            if (gameState.storages) {
+                main.storages = gameState.storages.map((data, index) => {
+                    if (index === 0) {
+                        return null;
+                    } else if (data !== null) {
+                        const newStorage = new Storage(data);
+                        newStorage.activateStorage();
+                        main.buildingsMap.set(index, newStorage);
+                        return newStorage
+                    }
+                });
+            } else {
+                main.storages = [];
+            }
+
+            if (gameState.constructors) {
+                main.constructors = gameState.constructors.map((data, index) => {
+                    if (index === 0) {
+                        return null;
+                    } else if (data !== null) {
+                        const newConstructor = new Constructor(data);
+                        newConstructor.activateConstructor(index - 1, main.webGLRenderer);
+                        main.buildingsMap.set(index, newConstructor);
+                        return newConstructor
+                    }
+                });
+            } else {
+                main.constructors = [];
+            }
+
+        }
+    }
+
+    function clearGameState() {
+        localStorage.removeItem('gameState');
+    }
 });
+
+
+
 
 

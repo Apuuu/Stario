@@ -2,22 +2,22 @@ import Storage from "./storage.js";
 import craftingData from "./data/craftingData.js";
 
 class Constructor {
-    constructor() {
-        this.name = "Constructor";
-        this.constructorID = null;
-        this.isRunning = false;
-        this.speed = 2;
-        this.workload = null;
-        this.productionMaterial = null;
-        this.craftingMaterials = null;
-        this.progress = 0;
-        this.posX = null;
-        this.posY = null;
-        this.internalInventory = new Storage();
-        this.outputConnection = null;
-        this.inputConnection = null;
-        this.acceptTransfer = true;
-        this.progressSteps = 0;
+    constructor(data = {}) {
+        this.name = data.name || "Constructor";
+        this.constructorID = data.constructorID || null;
+        this.isRunning = data.isRunning || false;
+        this.speed = data.speed || 2;
+        this.workload = data.workload || null;
+        this.productionMaterial = data.productionMaterial || null;
+        this.craftingMaterials = data.craftingMaterials || null;
+        this.progress = data.progress || 0;
+        this.posX = data.posX || null;
+        this.posY = data.posY || null;
+        this.internalInventory = data.internalInventory || new Storage();
+        this.outputConnection = data.outputConnection || null;
+        this.inputConnection = data.inputConnection || null;
+        this.acceptTransfer = data.acceptTransfer !== undefined ? data.acceptTransfer : true;
+        this.progressSteps = data.progressSteps || 0;
     }
 
     setProgressSteps() {

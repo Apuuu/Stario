@@ -2,23 +2,22 @@ import Storage from "./storage.js";
 import smeltingData from "./data/smeltingData.js";
 
 class Furnace {
-    constructor() {
-        this.name = "Furnace";
-        this.furnaceID = null;
-        this.isRunning = false;
-        this.speed = 2;
-        this.workload = null;
-        this.productionMaterial = null;
-        this.craftingMaterials = null;
-        this.outputAmount = null;
-        this.progress = 0;
-        this.posX = null;
-        this.posY = null;
-        this.internalInventory = new Storage();
-        this.outputConnection = null;
-        this.inputConnection = null;
-        this.acceptTransfer = true;
-        this.progressSteps = 0;
+    constructor(data = {}) {
+        this.name = data.name || "Furnace";
+        this.furnaceID = data.furnaceID || null;
+        this.isRunning = data.isRunning || false;
+        this.speed = data.speed || 2;
+        this.workload = data.workload || null;
+        this.productionMaterial = data.productionMaterial || null;
+        this.craftingMaterials = data.craftingMaterials || null;
+        this.outputAmount = data.outputAmount || null;
+        this.progress = data.progress || 0;
+        this.posX = data.posX || null;
+        this.posY = data.posY || null;
+        this.internalInventory = data.internalInventory || new Storage();
+        this.outputConnection = data.outputConnection || null;
+        this.inputConnection = data.inputConnection || null;
+        this.progressSteps = data.progressSteps || 0;
     }
 
     setupFurnace(materialName) {
