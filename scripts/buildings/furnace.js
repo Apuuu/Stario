@@ -4,7 +4,7 @@ import smeltingData from "./data/smeltingData.js";
 class Furnace {
     constructor(data = {}) {
         this.name = data.name || "Furnace";
-        this.furnaceID = data.furnaceID || null;
+        this.buildingID = data.buildingID || null;
         this.isRunning = data.isRunning || false;
         this.speed = data.speed || 2;
         this.workload = data.workload || null;
@@ -15,8 +15,8 @@ class Furnace {
         this.posX = data.posX || null;
         this.posY = data.posY || null;
         this.internalInventory = data.internalInventory || new Storage();
-        this.outputConnection = data.outputConnection || null;
-        this.inputConnection = data.inputConnection || null;
+        this.outputConnectionID = data.outputConnectionID || null;
+        this.inputConnectionID = data.inputConnectionID || null;
         this.progressSteps = data.progressSteps || 0;
     }
 
@@ -87,11 +87,11 @@ class Furnace {
     }
 
     setID(id) {
-        this.furnaceID = id;
+        this.buildingID = id;
     }
 
     getID() {
-        return this.furnaceID;
+        return this.buildingID;
     }
 }
 

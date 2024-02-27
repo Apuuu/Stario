@@ -295,8 +295,3 @@ class WebGLRenderer {
 }
 
 export default WebGLRenderer;
-
-
-
-
-

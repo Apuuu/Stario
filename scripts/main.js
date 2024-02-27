@@ -4,7 +4,7 @@ import Storage from "./buildings/storage.js";
 import Furnace from "./buildings/furnace.js";
 import Miner from "./buildings/oreHarvester.js";
 import Constructor from "./buildings/constructor.js";
-import saveGameManager from "./saveGameManager.js";
+import StorageCrate from "./buildings/storageCrate.js";
 
 class Main {
 
@@ -24,10 +24,7 @@ class Main {
     init() {
 
         this.webGLRenderer.initwebGLRenderer();
-        this.webGLRenderer.generateTerrain();
-        //console.log(this.webGLRenderer.terrainInfos);
-        //this.webGLRenderer.addTerrain(0, 100, 100, 50, "furnaceprogressbar")
-        //console.log(this.webGLRenderer.terrainInfos);
+        //this.webGLRenderer.generateTerrain();
         this.UI.addOresToMinerUI();
         this.UI.addSmeltingToUI();
         this.UI.addCraftingToUI();
@@ -51,21 +48,30 @@ $(document).ready(() => {
 
     $("#saveBut").click(function () {
         saveGameState();
-        console.log("Gamestate saved");
+        console.log("Inshallah, gamestate saved!        -Apu");
     });
 
     $("#loadBut").click(function () {
         loadGameState();
-        console.log("Gamestate loaded");
+        console.log("Mashallah, gamestate loaded!        -Apu");
     });
-
+    
     $("#resetBut").click(function () {
         clearGameState();
-        console.log("Gamestate reseted");
+        console.log("Alhamduliah, gamestate cleared!        -Apu");
     });
-
-    $("#printMap").click(function () {
+    //TODO: Rape Joe for this code and make it better and more efficient and less retarded
+    //TODO: Also make it so that the buildings are not hardcoded
+    //TODO: And make it so that the buildings are not hardcoded
+    //TODO: Also not hardcoded
+    //TODO: Dumb code is dumb and hardcoded and dumb and bad and dumb and hardcoded and dumb
+    //TODO: Vincent is raping Joe for this code and making it better and more efficient and less retarded
+    //TODO: Vincent is also making it so that the buildings are not hardcoded
+    //TODO: Vincent hates hardcoded code and is making it so that the buildings are not hardcoded
+    //TODO: Apu is watching how Vincent is raping Joe for this code and making it better and more efficient and less retarded
+     $("#printMap").click(function () {
         console.log(main.buildingsMap);
+        console.log(main.webGLRenderer.rectInfos);
     });
 
     //TODO: Refactor this into something that doesnt look like shit
@@ -93,36 +99,35 @@ $(document).ready(() => {
                 break;
             case 3:
                 main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
-                main.storages[main.webGLRenderer.counter] = new Storage();
+                main.storages[main.webGLRenderer.counter] = new StorageCrate();
                 main.storages[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
                 main.storages[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-                main.storages[main.webGLRenderer.counter].activateStorage();
+                main.storages[main.webGLRenderer.counter].activateStorageCrate();
                 main.buildingsMap.set(main.webGLRenderer.counter, main.storages[main.webGLRenderer.counter]);
                 break;
 
             case 4:
-                console.log(main.miners);
                 selectedBuilding = main.UI.getIDFromBuilding(event, main.webGLRenderer);
                 main.UI.displayBuildingInformations(main.buildingsMap.get(selectedBuilding + 1));
+                main.UI.getBuildingIDfromMouse(event, main.webGLRenderer, main.buildingsMap);
                 break;
 
             case 5:
-
                 if (selectionStep === 0) {
-                    firstSelection = main.UI.getIDFromBuilding(event, main.webGLRenderer);
+                    firstSelection = main.UI.getBuildingIDfromMouse(event, main.webGLRenderer, main.buildingsMap);
                     selectionStep++;
                 } else if (selectionStep === 1) {
-                    secondSelection = main.UI.getIDFromBuilding(event, main.webGLRenderer);
-                    main.buildingsMap.get(firstSelection + 1).outputConnection = main.buildingsMap.get(secondSelection + 1);
-                    main.buildingsMap.get(secondSelection + 1).inputConnection = main.buildingsMap.get(firstSelection + 1);
+                    secondSelection = main.UI.getBuildingIDfromMouse(event, main.webGLRenderer, main.buildingsMap);
 
-                    main.webGLRenderer.addLine(main.webGLRenderer.lineCounter, main.buildingsMap.get(firstSelection + 1).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(firstSelection + 1).posY + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection + 1).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection + 1).posY + (main.webGLRenderer.scale / 4));
+                    main.buildingsMap.get(firstSelection).outputConnectionID = secondSelection;
+                    main.buildingsMap.get(secondSelection).inputConnectionID = firstSelection;
 
-                    console.log(main.webGLRenderer.lineInfos);
+                    main.buildingsMap.get(firstSelection).outputConnection = main.buildingsMap.get(secondSelection);
+
+                    main.webGLRenderer.addLine(main.webGLRenderer.lineCounter, main.buildingsMap.get(firstSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(firstSelection).posY + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posY + (main.webGLRenderer.scale / 4));
 
                     selectionStep = 0;
                 }
-
                 break;
 
             case 6:
@@ -147,7 +152,7 @@ $(document).ready(() => {
     setInterval(() => {
         main.webGLRenderer.updateFrame();
     }, 100);
-
+    // retard apu
     $("#glCanvas").mousemove(function (event) {
         main.UI.changeVals(event, main.webGLRenderer.counter, main.storgeUnit);
     });
@@ -158,6 +163,7 @@ $(document).ready(() => {
 
         const gameState = {
             webglbuildings: main.webGLRenderer.rectInfos,
+            webgllines: main.webGLRenderer.lineInfos,
             miners: main.miners,
             furnaces: main.furnaces,
             storages: main.storages,
@@ -177,6 +183,7 @@ $(document).ready(() => {
             const gameState = JSON.parse(gameStateStr);
 
             main.webGLRenderer.rectInfos = gameState.webglbuildings;
+            main.webGLRenderer.lineInfos = gameState.webgllines;
 
             if (gameState.miners) {
                 main.miners = gameState.miners.map((data, index) => {
@@ -217,8 +224,8 @@ $(document).ready(() => {
                     if (index === 0) {
                         return null;
                     } else if (data !== null) {
-                        const newStorage = new Storage(data);
-                        newStorage.activateStorage();
+                        const newStorage = new StorageCrate(data);
+                        newStorage.activateStorageCrate();
                         main.buildingsMap.set(index, newStorage);
                         return newStorage
                     }
@@ -233,6 +240,8 @@ $(document).ready(() => {
                         return null;
                     } else if (data !== null) {
                         const newConstructor = new Constructor(data);
+                        newConstructor.internalInventory = data.internalInventory;
+                        newConstructor.isRunning = false;
                         newConstructor.activateConstructor(index - 1, main.webGLRenderer);
                         main.buildingsMap.set(index, newConstructor);
                         return newConstructor
@@ -241,7 +250,14 @@ $(document).ready(() => {
             } else {
                 main.constructors = [];
             }
-
+        }
+        
+        for(const [{}, value] of main.buildingsMap) {
+            if(value !== null) {
+                if(value.outputConnectionID !== null) {
+                    value.outputConnection = main.buildingsMap.get(value.outputConnectionID);
+                }
+            }
         }
     }
 
@@ -249,8 +265,3 @@ $(document).ready(() => {
         localStorage.removeItem('gameState');
     }
 });
-
-
-
-
-

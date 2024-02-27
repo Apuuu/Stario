@@ -8,9 +8,9 @@ class Storage {
         this.Capacity = data.Capacity || 100;
         this.posX = data.posX || null;
         this.posY = data.posY || null;
-        this.storageID = data.storageID || null;
-        this.inputConnection = data.inputConnection || null;
-        this.outputConnection = data.outputConnection || null;
+        this.buildingID = data.buildingID || null;
+        this.outputConnectionID = data.outputConnectionID || null;
+        this.outputConnection = null;
         this.resources = data.resources || [];
         this.setupStorage();
     }
@@ -37,7 +37,7 @@ class Storage {
     }
 
     setID(id) {
-        this.storageID = id;
+        this.buildingID = id;
     }
 
     setPos(x, y) {

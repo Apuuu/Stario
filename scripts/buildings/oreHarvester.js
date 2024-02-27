@@ -6,15 +6,16 @@ class Miner {
         this.name = data.name || "Miner";
         this.isRunning = data.isRunning || false;
         this.progress = data.progress || 0;
-        this.minerID = data.minerID || "default ID";
+        this.buildingID = data.buildingID || null;
         this.posX = data.posX || 0;
         this.posY = data.posY || 0;
         this.speed = data.speed || 10;
-        this.oreType = data.oreType || "default ore type";
+        this.oreType = data.oreType || "iron";
         this.upgradeLevel = data.upgradeLevel || 1;
         this.workload = data.workload || 0;
         this.internalInventory = new Storage(data.internalInventory || {});
-        this.outputConnection = data.outputConnection || null;
+        this.outputConnectionID = data.outputConnectionID || null;
+        this.outputConnection = null;
         this.transferSpeed = data.transferSpeed || 1;
         this.progressSteps = data.progressSteps || 0;
     }
@@ -83,7 +84,7 @@ class Miner {
     }
 
     setID(id) {
-        this.minerID = id;
+        this.buildingID = id;
     }
 
     setPos(x, y) {

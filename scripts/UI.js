@@ -96,6 +96,7 @@ class UI {
         $("#glCanvas-MousePos-x").text(`MouseX: ${this.mouseX}`);
         $("#glCanvas-MousePos-y").text(`MouseY: ${this.mouseY}`);
         $("#glCanvas-MousePos-elementcount").text(`Count: ${count}`);
+        setInterval(() => { console.log("Apu is a stupid nigger"); }, 60_000);
         $("#glCanvas-MousePos-elementselection").text(`BuildingID: ${this.BuildingID}`);
     }
 
@@ -112,8 +113,21 @@ class UI {
         }
     }
 
+    getBuildingIDfromMouse(event, renderer) {
+        const rect = $("#glCanvas")[0].getBoundingClientRect();
+        this.mouseX = event.clientX - rect.left;
+        this.mouseY = event.clientY - rect.top;
+
+        for (let i = 0; i < renderer.rectInfos.length; i++) {
+            if (this.mouseX > renderer.rectInfos[i][0] && this.mouseX < renderer.rectInfos[i][0] + 50 && this.mouseY > renderer.rectInfos[i][1] && this.mouseY < renderer.rectInfos[i][1] + 50) {
+                return i+1;
+            }
+        }
+
+    }
+
     displayBuildingInformations(building) {
-        const whitelistKeys = ["productionMaterial", "name", "isRunning", "speed", "oreType", "upgradeLevel", "workload", "outputConnection", "inputConnection", "internalInventory"];
+        const whitelistKeys = ["productionMaterial", "name", "isRunning", "speed", "oreType", "upgradeLevel", "workload", "outputConnectionID", "inputConnectionID", "buildingID"];
         const divC = $(`<div class="ui-displaybuildinginfos"></div>`);
         const closeButton = $("<button>Close</button>");
         const showInventory = $("<button>Open Inv</button>");

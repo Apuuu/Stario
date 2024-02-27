@@ -4,7 +4,7 @@ import craftingData from "./data/craftingData.js";
 class Constructor {
     constructor(data = {}) {
         this.name = data.name || "Constructor";
-        this.constructorID = data.constructorID || null;
+        this.buildingID = data.buildingID || null;
         this.isRunning = data.isRunning || false;
         this.speed = data.speed || 2;
         this.workload = data.workload || null;
@@ -14,9 +14,8 @@ class Constructor {
         this.posX = data.posX || null;
         this.posY = data.posY || null;
         this.internalInventory = data.internalInventory || new Storage();
-        this.outputConnection = data.outputConnection || null;
-        this.inputConnection = data.inputConnection || null;
-        this.acceptTransfer = data.acceptTransfer !== undefined ? data.acceptTransfer : true;
+        this.outputConnectionID = data.outputConnectionID || null;
+        this.outputConnection = null;
         this.progressSteps = data.progressSteps || 0;
     }
 
@@ -85,11 +84,11 @@ class Constructor {
     }
 
     setID(id) {
-        this.constructorID = id;
+        this.buildingID = id;
     }
 
     getID() {
-        return this.constructorID;
+        return this.buildingID;
     }
 }
 
