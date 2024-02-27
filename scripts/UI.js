@@ -96,7 +96,6 @@ class UI {
         $("#glCanvas-MousePos-x").text(`MouseX: ${this.mouseX}`);
         $("#glCanvas-MousePos-y").text(`MouseY: ${this.mouseY}`);
         $("#glCanvas-MousePos-elementcount").text(`Count: ${count}`);
-        setInterval(() => { console.log("Apu is a stupid nigger"); }, 60_000);
         $("#glCanvas-MousePos-elementselection").text(`BuildingID: ${this.BuildingID}`);
     }
 
