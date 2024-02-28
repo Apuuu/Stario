@@ -122,8 +122,8 @@ class WebGLRenderer {
         for (let i = 0; i < this[particlesArray].length; i++) {
 
             if (i == this[particlesArray].length - 1) {
-                this[particlesArray][i][0] = -1000;
-                this[particlesArray][i][1] = -1000;
+                this[particlesArray][i][0] = -10000;
+                this[particlesArray][i][1] = -10000;
             } else {
                 this[particlesArray][i][0] += (-50 + (Math.random() * mulX * 1)) * speed;
                 this[particlesArray][i][1] += (-mulY + (Math.random() * mulY * 2)) * speed;
@@ -447,6 +447,7 @@ class WebGLRenderer {
         this.buildingIDMap.set(4, "miner");
         this.buildingIDMap.set(5, "furnace");
         this.buildingIDMap.set(6, "constructorprogressbar"); //constructor
+        this.buildingIDMap.set(7, "storageprogressbar"); //constructor
     }
 }
 
