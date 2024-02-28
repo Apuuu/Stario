@@ -7,6 +7,7 @@ class WebGLRenderer {
         this.counter = 0;
         this.lineCounter = 0;
         this.terrainCounter = 0;
+        this.terrainPebblesCounter = 0;
         this.rectInfos = [];
         this.lineInfos = [];
         this.terrainInfos = [];
@@ -16,6 +17,7 @@ class WebGLRenderer {
         this.shaderProgram = null;
         this.buildingIDMap = new Map();
         this.scale = 100;
+        this.terrainScale = 50;
     }
 
     async loadTexture(id, url) {
@@ -53,26 +55,31 @@ class WebGLRenderer {
         this.loadTexture("constructorprogressbar", "scripts/buildings/img/constructor/constructor3d.png");
         this.loadTexture("storageprogressbar", "scripts/buildings/img/storage/storage3doc.png");
         this.loadTexture("terraingrass", "scripts/buildings/img/terrain/grass.png");
+        this.loadTexture("terrainastroid", "scripts/buildings/img/terrain/astroid.png");
+        this.loadTexture("terrainPebbles", "scripts/buildings/img/terrain/terrainpebbles.png");
+        this.loadTexture("terrainCraters", "scripts/buildings/img/terrain/tempcraters.png");
 
         this.vsSource = `
-        attribute vec4 aPosition;
-        attribute vec2 aTexCoord;
-        varying vec2 vTexCoord;
-        void main() {
-            gl_Position = aPosition;
-            vTexCoord = aTexCoord;
-        }
-    `;
+    attribute vec4 aPosition;
+    attribute vec2 aTexCoord;
+    varying vec2 vTexCoord;
+    void main() {
+        gl_Position = aPosition;
+        vTexCoord = aTexCoord;
+    }
+`;
 
         this.fsSource = `
-        precision mediump float;
-        uniform sampler2D uTexture;
-        varying vec2 vTexCoord;
-        void main() {
-            gl_FragColor = texture2D(uTexture, vTexCoord);
-        }
-    `;
-
+precision mediump float;
+uniform sampler2D uTexture;
+uniform vec4 uColor;
+varying vec2 vTexCoord;
+void main() {
+    vec4 textureColor = texture2D(uTexture, vTexCoord);
+    vec4 color = textureColor * uColor;
+    gl_FragColor = color;
+}
+`;
         const vertexShader = this.createShader(this.gl.VERTEX_SHADER, this.vsSource);
         const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, this.fsSource);
         this.shaderProgram = this.createProgram(vertexShader, fragmentShader);
@@ -100,29 +107,106 @@ class WebGLRenderer {
 
     }
 
-    generateTerrain() {
-        let positions = [];
-        for (let i = 0; i < this.canvas.width / (this.scale / 2); i++) {
-            for (let j = 0; j < this.canvas.height / (this.scale / 2); j++) {
-                const x = i * (this.scale / 2);
-                const y = j * (this.scale / 2);
-                const size = this.scale;
+    createTerrainOverlay(vertPos, buffer, scale, counter, randSize, minSize, randSpawn, threshold) {
+        this[vertPos] = [];
+        const values = [0.2, 0.4, 0.6, 0.8, 1.0];
+
+        for (let i = 0; i < this.canvas.width / (scale / 2); i++) {
+            for (let j = 0; j < this.canvas.height / (scale / 2); j++) {
+                const x = i * (scale / 2);
+                const y = j * (scale / 2);
+                const size = Math.random() * randSize + minSize;
                 const canvas = this.canvas;
                 const x1 = ((x - canvas.width / 2) / (canvas.width / 2));
                 const y1 = ((canvas.height / 2 - y) / (canvas.height / 2));
                 const x2 = (x1 + (size / canvas.width));
                 const y2 = (y1 - (size / canvas.height));
 
+                const end = values[Math.floor(Math.random() * values.length)];
+                const end2 = Math.random();
+                if (randSpawn) {
+                    if (end2 > threshold) {
+                        this[vertPos].push(
+                            x1, y1, end - 0.2, 0.0,
+                            x1, y2, end - 0.2, 1.0,
+                            x2, y1, end, 0.0
+                        );
+
+                        this[vertPos].push(
+                            x1, y2, end - 0.2, 1.0,
+                            x2, y1, end, 0.0,
+                            x2, y2, end, 1.0
+                        );
+
+                    }
+                } else {
+                    this[vertPos].push(
+                        x1, y1, end - 0.2, 0.0,
+                        x1, y2, end - 0.2, 1.0,
+                        x2, y1, end, 0.0
+                    );
+
+                    this[vertPos].push(
+                        x1, y2, end - 0.2, 1.0,
+                        x2, y1, end, 0.0,
+                        x2, y2, end, 1.0
+                    );
+                }
+
+
+                if (this[counter] === undefined) {
+                    this[counter] = 0;
+                }
+
+                this[counter]++;
+
+            }
+        }
+
+        this[buffer] = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this[vertPos]), this.gl.STATIC_DRAW);
+
+    }
+
+    drawTerrainOverlay(buffer, textureID, counter, color) {
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureID]);
+        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, 'uColor');
+        this.gl.uniform4f(uColorLocation, ...color);
+        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
+        this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
+        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aTexCoord');
+        this.gl.enableVertexAttribArray(texCoordAttributeLocation);
+        this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, this[counter] * 6);
+    }
+
+    generateTerrain() {
+        let positions = [];
+        for (let i = 0; i < this.canvas.width / (this.terrainScale / 2); i++) {
+            for (let j = 0; j < this.canvas.height / (this.terrainScale / 2); j++) {
+                const x = i * (this.terrainScale / 2);
+                const y = j * (this.terrainScale / 2);
+                const size = this.terrainScale;
+                const canvas = this.canvas;
+                const x1 = ((x - canvas.width / 2) / (canvas.width / 2));
+                const y1 = ((canvas.height / 2 - y) / (canvas.height / 2));
+                const x2 = (x1 + (size / canvas.width));
+                const y2 = (y1 - (size / canvas.height));
+                const start = 0.05;
+                const end = 0.6;
+
                 positions.push(
                     x1, y1, 0.0, 0.0,
                     x1, y2, 0.0, 1.0,
-                    x2, y1, 0.2, 0.0
+                    x2, y1, start + Math.random() * end, 0.0
                 );
 
                 positions.push(
                     x1, y2, 0.0, 1.0,
-                    x2, y1, 0.2, 0.0,
-                    x2, y2, 0.2, 1.0
+                    x2, y1, start + Math.random() * end, 0.0,
+                    x2, y2, start + Math.random() * end, 1.0
                 );
 
                 this.terrainCounter++;
@@ -136,7 +220,13 @@ class WebGLRenderer {
 
     drawTerrain() {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.terrainBuffer);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["terraingrass"]);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["terrainastroid"]);
+        let color = [1, 1, 1, 1.0];  // Red color
+        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, 'uColor');
+        this.gl.uniform4f(uColorLocation, ...color);
+        let darken = false;  // Change this to false to disable the darkening effect
+        let uDarkenLocation = this.gl.getUniformLocation(this.shaderProgram, 'uDarken');
+        this.gl.uniform1i(uDarkenLocation, darken ? 1 : 0);
         const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
         const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aTexCoord');
@@ -242,7 +332,10 @@ class WebGLRenderer {
 
     updateFrame() {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        //this.drawTerrain();
+        this.drawTerrain();
+        this.drawTerrainOverlay("pebblesBuffer", "terrainPebbles", "pebblesCounter", [1, 1, 1, 0.15]);
+        this.drawTerrainOverlay("pebblesBuffer2", "terrainPebbles", "pebblesCounter2", [1, 1, 1, 1]);
+        this.drawTerrainOverlay("cratersBuffer", "terrainCraters", "cratersCounter", [1, 1, 1, 1]);
         this.redrawLines();
         this.redrawRectangles();
     }

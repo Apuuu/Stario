@@ -215,8 +215,8 @@ body {
 .glCanvas-ui-constructorselection-container{
     height: 550px;
     width: 100%;
-    column-count: 8; /* Number of columns */
-    column-fill: auto; /* Content will fill subsequent columns once the previous ones are filled */
+    column-count: 8;
+    column-fill: auto;
 }
 
 .glCanvas-ui-constructorselection-element{

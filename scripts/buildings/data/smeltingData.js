@@ -21,7 +21,7 @@ const smeltingData = [
         inputMaterials: {
             "iron": 2
         },
-        workload: 5,
+        workload: 50,
         weight: 100,
         outputAmount: 1
     }

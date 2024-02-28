@@ -31,7 +31,7 @@ const oreData = [
     },
     {
         oretype: "arixenium",
-        workload: 1000,
+        workload: 100,
         weight: 100000
     },
     

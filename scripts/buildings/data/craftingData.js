@@ -15,6 +15,14 @@ const craftingData = [
         },
         workload: 200,
         weight: 100
+    },{
+        outputMaterial: "autism",
+        inputMaterials: {
+            "redksium": 10,
+            "arixenium": 10
+        },
+        workload: 1500,
+        weight: 100
     }
 ];
 

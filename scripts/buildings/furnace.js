@@ -16,7 +16,7 @@ class Furnace {
         this.posY = data.posY || null;
         this.internalInventory = data.internalInventory || new Storage();
         this.outputConnectionID = data.outputConnectionID || null;
-        this.inputConnectionID = data.inputConnectionID || null;
+        this.outputConnection = null;
         this.progressSteps = data.progressSteps || 0;
     }
 

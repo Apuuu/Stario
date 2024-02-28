@@ -24,11 +24,14 @@ class Main {
     init() {
 
         this.webGLRenderer.initwebGLRenderer();
-        //this.webGLRenderer.generateTerrain();
+        this.webGLRenderer.generateTerrain(); 
+        this.webGLRenderer.createTerrainOverlay("pebblesVerts", "pebblesBuffer", 60, "pebblesCounter", 100, 20, false, 0);
+        this.webGLRenderer.createTerrainOverlay("pebblesVerts2", "pebblesBuffer2", 70, "pebblesCounter2", 100, 20, false, 0);
+        this.webGLRenderer.createTerrainOverlay("cratersVerts", "cratersBuffer", 80, "cratersCounter", 350, 20, true, 0.97);
         this.UI.addOresToMinerUI();
         this.UI.addSmeltingToUI();
         this.UI.addCraftingToUI();
-
+        
     }
 
 }
@@ -75,7 +78,7 @@ $(document).ready(() => {
     });
 
     //TODO: Refactor this into something that doesnt look like shit
-    $("#glCanvas").on('click', function (event) {
+    $("#glCanvas").on("click", function (event) {
         switch (main.UI.BuildingID) {
             case 1:
                 main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
@@ -144,7 +147,7 @@ $(document).ready(() => {
         }
     });
 
-    $(window).on('resize', function () {
+    $(window).on("resize", function () {
         main.webGLRenderer.resizeCanvas();
         main.webGLRenderer.redrawRectangles();
     });
@@ -172,12 +175,12 @@ $(document).ready(() => {
 
         const gameStateStr = JSON.stringify(gameState);
 
-        localStorage.setItem('gameState', gameStateStr);
+        localStorage.setItem("gameState", gameStateStr);
     }
 
     function loadGameState() {
 
-        const gameStateStr = localStorage.getItem('gameState');
+        const gameStateStr = localStorage.getItem("gameState");
 
         if (gameStateStr) {
             const gameState = JSON.parse(gameStateStr);
@@ -262,6 +265,6 @@ $(document).ready(() => {
     }
 
     function clearGameState() {
-        localStorage.removeItem('gameState');
+        localStorage.removeItem("gameState");
     }
 });
