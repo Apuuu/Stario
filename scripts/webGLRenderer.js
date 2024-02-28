@@ -2,7 +2,7 @@ class WebGLRenderer {
 
     constructor() {
 
-        this.canvas = document.getElementById('glCanvas');
+        this.canvas = document.getElementById("glCanvas");
         this.gl = this.canvas.getContext("webgl");
         this.counter = 0;
         this.lineCounter = 0;
@@ -58,28 +58,30 @@ class WebGLRenderer {
         this.loadTexture("terrainastroid", "scripts/buildings/img/terrain/astroid.png");
         this.loadTexture("terrainPebbles", "scripts/buildings/img/terrain/terrainpebbles.png");
         this.loadTexture("terrainCraters", "scripts/buildings/img/terrain/tempcraters.png");
+        this.loadTexture("terrainDust", "scripts/buildings/img/terrain/dust.png");
 
         this.vsSource = `
-    attribute vec4 aPosition;
-    attribute vec2 aTexCoord;
-    varying vec2 vTexCoord;
-    void main() {
-        gl_Position = aPosition;
-        vTexCoord = aTexCoord;
-    }
-`;
+            attribute vec4 aPosition;
+            attribute vec2 aTexCoord;
+            varying vec2 vTexCoord;
+            void main() {
+                gl_Position = aPosition;
+                vTexCoord = aTexCoord;
+            }
+        `;
 
         this.fsSource = `
-precision mediump float;
-uniform sampler2D uTexture;
-uniform vec4 uColor;
-varying vec2 vTexCoord;
-void main() {
-    vec4 textureColor = texture2D(uTexture, vTexCoord);
-    vec4 color = textureColor * uColor;
-    gl_FragColor = color;
-}
-`;
+            precision mediump float;
+            uniform sampler2D uTexture;
+            uniform vec4 uColor;
+            varying vec2 vTexCoord;
+            void main() {
+                vec4 textureColor = texture2D(uTexture, vTexCoord);
+                vec4 color = textureColor * uColor;
+                gl_FragColor = color;
+            }
+        `;
+
         const vertexShader = this.createShader(this.gl.VERTEX_SHADER, this.vsSource);
         const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, this.fsSource);
         this.shaderProgram = this.createProgram(vertexShader, fragmentShader);
@@ -94,7 +96,7 @@ void main() {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
 
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
+        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
         this.gl.enableVertexAttribArray(positionAttributeLocation);
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 
@@ -105,6 +107,66 @@ void main() {
 
         this.gl.useProgram(this.shaderProgram);
 
+    }
+
+    createParticleSystem(amount, particelsArray, startPosX, startPosY, scale, distribX, distribY, color) {
+        this[particelsArray] = [];
+        for (let i = 0; i < amount; i++) {
+            const x = startPosX + (-1 + (Math.random() * 2)) * distribX;
+            const y = startPosY + (-1 + (Math.random() * 2)) * distribY;
+            this[particelsArray][i] = [x, y, color, scale];
+        }
+    }
+
+    randomizeParticleSystem(particlesArray, mulX, mulY, speed) {
+        for (let i = 0; i < this[particlesArray].length; i++) {
+
+            if (i == this[particlesArray].length - 1) {
+                this[particlesArray][i][0] = -1000;
+                this[particlesArray][i][1] = -1000;
+            } else {
+                this[particlesArray][i][0] += (-50 + (Math.random() * mulX * 1)) * speed;
+                this[particlesArray][i][1] += (-mulY + (Math.random() * mulY * 2)) * speed;
+
+                if (this[particlesArray][i][0] > this.canvas.width) {
+                    this[particlesArray][i][0] = 0;
+                }
+            }
+        }
+    }
+
+    drawParticleSystem(particlesArray, particlesPos) {
+        this.randomizeParticleSystem(particlesArray, 400, 100, 0.01);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["terrainDust"]);
+        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
+        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aTexCoord");
+        this.gl.enableVertexAttribArray(texCoordAttributeLocation);
+        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, "uColor");
+        this[particlesPos] = [];
+        for (let i = 0; i < this[particlesArray].length; i++) {
+
+            const canvas = this.canvas;
+            const x1 = ((this[particlesArray][i][0] - canvas.width / 2) / (canvas.width / 2));
+            const y1 = ((canvas.height / 2 - this[particlesArray][i][1]) / (canvas.height / 2));
+            const x2 = (x1 + (this[particlesArray][i][3] / canvas.width));
+            const y2 = (y1 - (this[particlesArray][i][3] / canvas.height));
+
+            this[particlesPos] = [
+                x1, y1, 0.0, 0.0,
+                x1, y2, 0.0, 1,
+                x2, y1, 1, 0.0,
+                x2, y2, 1, 1
+            ];
+
+            this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+            this.gl.uniform4f(uColorLocation, ...this[particlesArray][i][2]);
+            this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this[particlesPos]), this.gl.STATIC_DRAW);
+
+
+        }
+        this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
+        this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
+        this.gl.uniform4f(uColorLocation, ...[1, 1, 1, 1]);
     }
 
     createTerrainOverlay(vertPos, buffer, scale, counter, randSize, minSize, randSpawn, threshold) {
@@ -172,11 +234,11 @@ void main() {
     drawTerrainOverlay(buffer, textureID, counter, color) {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureID]);
-        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, 'uColor');
+        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, "uColor");
         this.gl.uniform4f(uColorLocation, ...color);
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
+        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
-        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aTexCoord');
+        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aTexCoord");
         this.gl.enableVertexAttribArray(texCoordAttributeLocation);
         this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, this[counter] * 6);
@@ -222,14 +284,14 @@ void main() {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.terrainBuffer);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["terrainastroid"]);
         let color = [1, 1, 1, 1.0];  // Red color
-        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, 'uColor');
+        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, "uColor");
         this.gl.uniform4f(uColorLocation, ...color);
         let darken = false;  // Change this to false to disable the darkening effect
-        let uDarkenLocation = this.gl.getUniformLocation(this.shaderProgram, 'uDarken');
+        let uDarkenLocation = this.gl.getUniformLocation(this.shaderProgram, "uDarken");
         this.gl.uniform1i(uDarkenLocation, darken ? 1 : 0);
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
+        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
-        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aTexCoord');
+        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aTexCoord");
         this.gl.enableVertexAttribArray(texCoordAttributeLocation);
         this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, this.terrainCounter * 6);
@@ -254,7 +316,7 @@ void main() {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
 
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
+        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
         this.gl.enableVertexAttribArray(positionAttributeLocation);
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
     }
@@ -309,9 +371,9 @@ void main() {
             x2, y2, 0.2 + this.rectInfos[id][4], 1
         ];
 
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aPosition');
+        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
         this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
-        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, 'aTexCoord');
+        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aTexCoord");
         this.gl.enableVertexAttribArray(texCoordAttributeLocation);
         this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
 
@@ -338,6 +400,7 @@ void main() {
         this.drawTerrainOverlay("cratersBuffer", "terrainCraters", "cratersCounter", [1, 1, 1, 1]);
         this.redrawLines();
         this.redrawRectangles();
+        this.drawParticleSystem("part1")
     }
 
     createShader(type, source) {
@@ -345,7 +408,7 @@ void main() {
         this.gl.shaderSource(shader, source);
         this.gl.compileShader(shader);
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            console.error('Error compiling shader:', this.gl.getShaderInfoLog(shader));
+            console.error("Error compiling shader:", this.gl.getShaderInfoLog(shader));
             this.gl.deleteShader(shader);
             return null;
         }
@@ -358,7 +421,7 @@ void main() {
         this.gl.attachShader(program, fragmentShader);
         this.gl.linkProgram(program);
         if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
-            console.error('Error linking program:', this.gl.getProgramInfoLog(program));
+            console.error("Error linking program:", this.gl.getProgramInfoLog(program));
             this.gl.deleteProgram(program);
             return null;
         }

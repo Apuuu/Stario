@@ -28,6 +28,7 @@ class Main {
         this.webGLRenderer.createTerrainOverlay("pebblesVerts", "pebblesBuffer", 60, "pebblesCounter", 100, 20, false, 0);
         this.webGLRenderer.createTerrainOverlay("pebblesVerts2", "pebblesBuffer2", 70, "pebblesCounter2", 100, 20, false, 0);
         this.webGLRenderer.createTerrainOverlay("cratersVerts", "cratersBuffer", 80, "cratersCounter", 350, 20, true, 0.97);
+        this.webGLRenderer.createParticleSystem(200, "part1", 1400, 420, 900, 1850,700, [1,1,1,0.2]);
         this.UI.addOresToMinerUI();
         this.UI.addSmeltingToUI();
         this.UI.addCraftingToUI();
