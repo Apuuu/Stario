@@ -21,6 +21,7 @@ class WebGLRenderer {
         this.mineralInfos = [];
         this.terrainSeed = 115;
         this.noiseScale = 0.4;
+        this.defaultTerrain = "terrainastroid";
     }
 
     async loadTexture(id, url) {
@@ -122,12 +123,22 @@ class WebGLRenderer {
 
         this.gl.useProgram(this.shaderProgram);
 
+        this.astroidTerrain();
+        this.createParticleSystem(200, "part1", 1750, 1350, 900, 1850, 1750, [1, 1, 1, Math.random() * 0.3]);
+    }
+
+    astroidTerrain() {
+        this.defaultTerrain = "terrainastroid";
         this.generateTerrain();
         this.createTerrainOverlay("pebblesVerts", "pebblesBuffer", 60, "pebblesCounter", 100, 20, false, 0, 1);
         this.createTerrainOverlay("pebblesVerts2", "pebblesBuffer2", 70, "pebblesCounter2", 100, 20, false, 0, 0.1);
         this.createTerrainOverlay("cratersVerts", "cratersBuffer", 80, "cratersCounter", 350, 20, true, 0.98, 1);
-        this.createParticleSystem(200, "part1", 1750, 1350, 900, 1850, 1750, [1, 1, 1, Math.random() * 0.3]);
+    }
 
+    renderAstroidTerrain() {
+        this.drawTerrainOverlay("pebblesBuffer", "terrainPebbles", "pebblesCounter");
+        this.drawTerrainOverlay("pebblesBuffer2", "terrainPebbles", "pebblesCounter2");
+        this.drawTerrainOverlay("cratersBuffer", "terrainCraters", "cratersCounter");
     }
 
     getMineralInfos(mineralDeposites) {
@@ -363,9 +374,9 @@ class WebGLRenderer {
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(positions), this.gl.STATIC_DRAW);
     }
 
-    drawTerrain() {
+    drawTerrain(textureID) {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.terrainBuffer);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["terrainastroid"]);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureID]);
         this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
         this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
         this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
@@ -476,11 +487,9 @@ class WebGLRenderer {
 
     updateFrame() {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
-        this.drawTerrain();
+        this.drawTerrain(this.defaultTerrain);
         this.drawMineralDeposits("mineralBuffer", "mineralCounter");
-        this.drawTerrainOverlay("pebblesBuffer", "terrainPebbles", "pebblesCounter");
-        this.drawTerrainOverlay("pebblesBuffer2", "terrainPebbles", "pebblesCounter2");
-        this.drawTerrainOverlay("cratersBuffer", "terrainCraters", "cratersCounter");
+        this.renderAstroidTerrain();
         this.redrawLines();
         this.redrawRectangles();
         this.drawParticleSystem("part1");

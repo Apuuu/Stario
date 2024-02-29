@@ -30,6 +30,7 @@ class Main {
     init() {
 
         this.webGLRenderer.initwebGLRenderer();
+        
         this.mineralDepositesGenerator.generateDepositRandom(100, this.webGLRenderer);
         this.webGLRenderer.createMineralDepositsBuffer("mineralVerts", "mineralBuffer", "mineralCounter");
     }
