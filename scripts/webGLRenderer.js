@@ -18,6 +18,7 @@ class WebGLRenderer {
         this.buildingIDMap = new Map();
         this.scale = 100;
         this.terrainScale = 50;
+        this.mineralInfos = [];
     }
 
     async loadTexture(id, url) {
@@ -59,26 +60,37 @@ class WebGLRenderer {
         this.loadTexture("terrainPebbles", "scripts/buildings/img/terrain/terrainpebbles.png");
         this.loadTexture("terrainCraters", "scripts/buildings/img/terrain/tempcraters.png");
         this.loadTexture("terrainDust", "scripts/buildings/img/terrain/dust.png");
+        this.loadTexture("resource", "scripts/buildings/img/terrain/resourcenode.png");
 
         this.vsSource = `
-            attribute vec4 aPosition;
-            attribute vec2 aTexCoord;
-            varying vec2 vTexCoord;
-            void main() {
-                gl_Position = aPosition;
-                vTexCoord = aTexCoord;
-            }
-        `;
+        attribute vec4 aPosition;
+        attribute vec2 aTexCoord;
+        attribute vec4 aColor;
+        varying vec2 vTexCoord;
+        varying vec4 vColor;
+        void main() {
+            gl_Position = aPosition;
+            vTexCoord = aTexCoord;
+            vColor = aColor;
+        }
+    `;
 
         this.fsSource = `
             precision mediump float;
             uniform sampler2D uTexture;
-            uniform vec4 uColor;
+            uniform bool smoothOut;
             varying vec2 vTexCoord;
+            varying vec4 vColor;
             void main() {
                 vec4 textureColor = texture2D(uTexture, vTexCoord);
-                vec4 color = textureColor * uColor;
-                gl_FragColor = color;
+                vec4 color = textureColor * vColor;
+                float distanceFromCenter;
+                if(smoothOut == true){
+                    distanceFromCenter = 2.0-length(vTexCoord - vec2(0.5, 0.5))*3.0;
+                }else{
+                    distanceFromCenter = 1.0;
+                }
+                gl_FragColor = color*distanceFromCenter;
             }
         `;
 
@@ -92,13 +104,17 @@ class WebGLRenderer {
             0.5, -0.5
         ];
 
+        this.positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
+        this.texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aTexCoord");
+        this.colorAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aColor");
+        this.smoothOutLocation = this.gl.getUniformLocation(this.shaderProgram, "smoothOut");
+
         const buffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
 
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
-        this.gl.enableVertexAttribArray(positionAttributeLocation);
-        this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+        this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
 
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
@@ -107,6 +123,67 @@ class WebGLRenderer {
 
         this.gl.useProgram(this.shaderProgram);
 
+        this.generateTerrain();
+        this.createTerrainOverlay("pebblesVerts", "pebblesBuffer", 60, "pebblesCounter", 100, 20, false, 0, [1, 1, 1, 0.15]);
+        this.createTerrainOverlay("pebblesVerts2", "pebblesBuffer2", 70, "pebblesCounter2", 100, 20, false, 0, [1, 1, 1, 1]);
+        this.createTerrainOverlay("cratersVerts", "cratersBuffer", 80, "cratersCounter", 350, 20, true, 0.98, [1, 1, 1, 1]);
+        this.createParticleSystem(200, "part1", 1750, 1350, 900, 1850, 1750, [1, 1, 1, Math.random() * 0.4]);
+
+    }
+
+    getMineralInfos(mineralDeposites) {
+        this.mineralInfos = mineralDeposites;
+    }
+
+    createMineralDepositsBuffer(mineralVerts, mineralBuffer, counter) {
+        this[mineralVerts] = [];
+        console.log(this.mineralInfos);
+
+        for (let i = 0; i < this.mineralInfos.length; i++) {
+            const x = this.mineralInfos[i].x;
+            const y = this.mineralInfos[i].y;
+            const canvas = this.canvas;
+            const x1 = ((x - canvas.width / 2) / (canvas.width / 2));
+            const y1 = ((canvas.height / 2 - y) / (canvas.height / 2));
+            const x2 = (x1 + (this.scale / canvas.width));
+            const y2 = (y1 - (this.scale / canvas.height));
+
+            this[mineralVerts].push(
+                x1, y1, 0.0, 0.0, ...this.mineralInfos[i].oreColor,
+                x1, y2, 0.0, 1.0, ...this.mineralInfos[i].oreColor,
+                x2, y1, 1, 0.0, ...this.mineralInfos[i].oreColor
+            );
+
+            this[mineralVerts].push(
+                x1, y2, 0.0, 1.0, ...this.mineralInfos[i].oreColor,
+                x2, y1, 1, 0.0, ...this.mineralInfos[i].oreColor,
+                x2, y2, 1, 1, ...this.mineralInfos[i].oreColor
+            );
+
+            if (this[counter] === undefined) {
+                this[counter] = 0;
+            }
+
+            this[counter]++;
+
+        }
+
+        this[mineralBuffer] = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[mineralBuffer]);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this[mineralVerts]), this.gl.STATIC_DRAW);
+    }
+
+    drawMineralDeposits(buffer, counter) {
+        this.gl.uniform1i(this.smoothOutLocation, true ? 1 : 0);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["resource"]);
+        this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
+        this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
+        this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
+        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
+        this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, this[counter] * 6);
+        this.gl.uniform1i(this.smoothOutLocation, false ? 1 : 0);
     }
 
     createParticleSystem(amount, particelsArray, startPosX, startPosY, scale, distribX, distribY, color) {
@@ -138,38 +215,35 @@ class WebGLRenderer {
     drawParticleSystem(particlesArray, particlesPos) {
         this.randomizeParticleSystem(particlesArray, 400, 100, 0.01);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["terrainDust"]);
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
-        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aTexCoord");
-        this.gl.enableVertexAttribArray(texCoordAttributeLocation);
-        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, "uColor");
+        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+        this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
+        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
+        const canvas = this.canvas;
         this[particlesPos] = [];
         for (let i = 0; i < this[particlesArray].length; i++) {
 
-            const canvas = this.canvas;
             const x1 = ((this[particlesArray][i][0] - canvas.width / 2) / (canvas.width / 2));
             const y1 = ((canvas.height / 2 - this[particlesArray][i][1]) / (canvas.height / 2));
             const x2 = (x1 + (this[particlesArray][i][3] / canvas.width));
             const y2 = (y1 - (this[particlesArray][i][3] / canvas.height));
 
+            const color = this[particlesArray][i][2];
             this[particlesPos] = [
-                x1, y1, 0.0, 0.0,
-                x1, y2, 0.0, 1,
-                x2, y1, 1, 0.0,
-                x2, y2, 1, 1
+                x1, y1, 0.0, 0.0, ...color,
+                x1, y2, 0.0, 1, ...color,
+                x2, y1, 1, 0.0, ...color,
+                x2, y2, 1, 1, ...color
             ];
 
-            this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
-            this.gl.uniform4f(uColorLocation, ...this[particlesArray][i][2]);
             this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this[particlesPos]), this.gl.STATIC_DRAW);
-
-
+            this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
+            this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
+            this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
+            this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
         }
-        this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
-        this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
-        this.gl.uniform4f(uColorLocation, ...[1, 1, 1, 1]);
     }
 
-    createTerrainOverlay(vertPos, buffer, scale, counter, randSize, minSize, randSpawn, threshold) {
+    createTerrainOverlay(vertPos, buffer, scale, counter, randSize, minSize, randSpawn, threshold, color) {
         this[vertPos] = [];
         const values = [0.2, 0.4, 0.6, 0.8, 1.0];
 
@@ -189,63 +263,61 @@ class WebGLRenderer {
                 if (randSpawn) {
                     if (end2 > threshold) {
                         this[vertPos].push(
-                            x1, y1, end - 0.2, 0.0,
-                            x1, y2, end - 0.2, 1.0,
-                            x2, y1, end, 0.0
+                            x1, y1, end - 0.2, 0.0, ...color,
+                            x1, y2, end - 0.2, 1.0, ...color,
+                            x2, y1, end, 0.0, ...color
                         );
 
                         this[vertPos].push(
-                            x1, y2, end - 0.2, 1.0,
-                            x2, y1, end, 0.0,
-                            x2, y2, end, 1.0
+                            x1, y2, end - 0.2, 1.0, ...color,
+                            x2, y1, end, 0.0, ...color,
+                            x2, y2, end, 1.0, ...color
                         );
 
                     }
                 } else {
                     this[vertPos].push(
-                        x1, y1, end - 0.2, 0.0,
-                        x1, y2, end - 0.2, 1.0,
-                        x2, y1, end, 0.0
+                        x1, y1, end - 0.2, 0.0, ...color,
+                        x1, y2, end - 0.2, 1.0, ...color,
+                        x2, y1, end, 0.0, ...color
                     );
 
                     this[vertPos].push(
-                        x1, y2, end - 0.2, 1.0,
-                        x2, y1, end, 0.0,
-                        x2, y2, end, 1.0
+                        x1, y2, end - 0.2, 1.0, ...color,
+                        x2, y1, end, 0.0, ...color,
+                        x2, y2, end, 1.0, ...color
                     );
                 }
-
 
                 if (this[counter] === undefined) {
                     this[counter] = 0;
                 }
 
                 this[counter]++;
-
             }
         }
 
         this[buffer] = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this[vertPos]), this.gl.STATIC_DRAW);
-
     }
 
-    drawTerrainOverlay(buffer, textureID, counter, color) {
+    drawTerrainOverlay(buffer, textureID, counter) {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureID]);
-        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, "uColor");
-        this.gl.uniform4f(uColorLocation, ...color);
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
-        this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
-        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aTexCoord");
-        this.gl.enableVertexAttribArray(texCoordAttributeLocation);
-        this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
+        this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
+        this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
+        this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
+        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+        this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
+        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, this[counter] * 6);
     }
 
     generateTerrain() {
         let positions = [];
+        const defaultColor = [1.0, 1.0, 1.0, 1.0]; // Default color is white
+
         for (let i = 0; i < this.canvas.width / (this.terrainScale / 2); i++) {
             for (let j = 0; j < this.canvas.height / (this.terrainScale / 2); j++) {
                 const x = i * (this.terrainScale / 2);
@@ -260,15 +332,15 @@ class WebGLRenderer {
                 const end = 0.6;
 
                 positions.push(
-                    x1, y1, 0.0, 0.0,
-                    x1, y2, 0.0, 1.0,
-                    x2, y1, start + Math.random() * end, 0.0
+                    x1, y1, 0.0, 0.0, ...defaultColor,
+                    x1, y2, 0.0, 1.0, ...defaultColor,
+                    x2, y1, start + Math.random() * end, 0.0, ...defaultColor
                 );
 
                 positions.push(
-                    x1, y2, 0.0, 1.0,
-                    x2, y1, start + Math.random() * end, 0.0,
-                    x2, y2, start + Math.random() * end, 1.0
+                    x1, y2, 0.0, 1.0, ...defaultColor,
+                    x2, y1, start + Math.random() * end, 0.0, ...defaultColor,
+                    x2, y2, start + Math.random() * end, 1.0, ...defaultColor
                 );
 
                 this.terrainCounter++;
@@ -283,17 +355,12 @@ class WebGLRenderer {
     drawTerrain() {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.terrainBuffer);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["terrainastroid"]);
-        let color = [1, 1, 1, 1.0];  // Red color
-        let uColorLocation = this.gl.getUniformLocation(this.shaderProgram, "uColor");
-        this.gl.uniform4f(uColorLocation, ...color);
-        let darken = false;  // Change this to false to disable the darkening effect
-        let uDarkenLocation = this.gl.getUniformLocation(this.shaderProgram, "uDarken");
-        this.gl.uniform1i(uDarkenLocation, darken ? 1 : 0);
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
-        this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
-        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aTexCoord");
-        this.gl.enableVertexAttribArray(texCoordAttributeLocation);
-        this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
+        this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
+        this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
+        this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
+        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+        this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
+        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, this.terrainCounter * 6);
     }
 
@@ -304,10 +371,11 @@ class WebGLRenderer {
         const startY = ((canvas.height / 2 - y1) / (canvas.height / 2));
         const endX = ((x2 - canvas.width / 2) / (canvas.width / 2));
         const endY = ((canvas.height / 2 - y2) / (canvas.height / 2));
+        const defaultColor = [1.0, 1.0, 1.0, 1.0]; // Default color is white
 
         const vertices = [
-            startX, startY,
-            endX, endY
+            startX, startY, ...defaultColor,
+            endX, endY, ...defaultColor
         ];
 
         this.lineInfos[id] = [x1, y1, x2, y2];
@@ -316,9 +384,10 @@ class WebGLRenderer {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, buffer);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
 
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
-        this.gl.enableVertexAttribArray(positionAttributeLocation);
-        this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 0, 0);
+        this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 24, 0);
+        this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 24, 8);
+        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
     }
 
     addLine(id, x1, y1, x2, y2) {
@@ -361,22 +430,23 @@ class WebGLRenderer {
         const y1 = ((canvas.height / 2 - y) / (canvas.height / 2));
         const x2 = (x1 + (size / canvas.width));
         const y2 = (y1 - (size / canvas.height));
+        const defaultColor = [1.0, 1.0, 1.0, 1.0]; // Default color is white
 
         this.rectInfos[id] = [x, y, size, textureID, prog];
 
         const position = [
-            x1, y1, 0.0 + this.rectInfos[id][4], 0.0,
-            x1, y2, 0.0 + this.rectInfos[id][4], 1,
-            x2, y1, 0.2 + this.rectInfos[id][4], 0.0,
-            x2, y2, 0.2 + this.rectInfos[id][4], 1
+            x1, y1, 0.0 + this.rectInfos[id][4], 0.0, ...defaultColor,
+            x1, y2, 0.0 + this.rectInfos[id][4], 1.0, ...defaultColor,
+            x2, y1, 0.2 + this.rectInfos[id][4], 0.0, ...defaultColor,
+            x2, y2, 0.2 + this.rectInfos[id][4], 1.0, ...defaultColor
         ];
 
-        const positionAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aPosition");
-        this.gl.vertexAttribPointer(positionAttributeLocation, 2, this.gl.FLOAT, false, 16, 0);
-        const texCoordAttributeLocation = this.gl.getAttribLocation(this.shaderProgram, "aTexCoord");
-        this.gl.enableVertexAttribArray(texCoordAttributeLocation);
-        this.gl.vertexAttribPointer(texCoordAttributeLocation, 2, this.gl.FLOAT, false, 16, 8);
-
+        this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
+        this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
+        this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
+        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+        this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
+        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(position), this.gl.STATIC_DRAW);
     }
 
@@ -395,12 +465,13 @@ class WebGLRenderer {
     updateFrame() {
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
         this.drawTerrain();
+        this.drawMineralDeposits("mineralBuffer", "mineralCounter");
         this.drawTerrainOverlay("pebblesBuffer", "terrainPebbles", "pebblesCounter", [1, 1, 1, 0.15]);
         this.drawTerrainOverlay("pebblesBuffer2", "terrainPebbles", "pebblesCounter2", [1, 1, 1, 1]);
         this.drawTerrainOverlay("cratersBuffer", "terrainCraters", "cratersCounter", [1, 1, 1, 1]);
         this.redrawLines();
         this.redrawRectangles();
-        this.drawParticleSystem("part1")
+        this.drawParticleSystem("part1");
     }
 
     createShader(type, source) {

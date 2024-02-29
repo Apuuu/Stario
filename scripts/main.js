@@ -6,6 +6,7 @@ import Miner from "./buildings/oreHarvester.js";
 import Constructor from "./buildings/constructor.js";
 import StorageCrate from "./buildings/storageCrate.js";
 import ResourceTransporter from "./buildings/resourcesTransporter.js";
+import mineralDepositesGenerator from "./mineralDepositesGenerator.js";
 
 class Main {
 
@@ -13,6 +14,8 @@ class Main {
         this.webGLRenderer = new WebGLRenderer();
         this.UI = new UI();
         this.storgeUnit = new Storage();
+        this.mineralDepositesGenerator = new mineralDepositesGenerator();
+        this.deposites = [];
         this.furnaces = [];
         this.miners = [];
         this.storages = [];
@@ -27,14 +30,8 @@ class Main {
     init() {
 
         this.webGLRenderer.initwebGLRenderer();
-        this.webGLRenderer.generateTerrain();
-        this.webGLRenderer.createTerrainOverlay("pebblesVerts", "pebblesBuffer", 60, "pebblesCounter", 100, 20, false, 0);
-        this.webGLRenderer.createTerrainOverlay("pebblesVerts2", "pebblesBuffer2", 70, "pebblesCounter2", 100, 20, false, 0);
-        this.webGLRenderer.createTerrainOverlay("cratersVerts", "cratersBuffer", 80, "cratersCounter", 350, 20, true, 0.97);
-        this.webGLRenderer.createParticleSystem(200, "part1", 1750, 1350, 900, 1850, 1750, [1, 1, 1, 0.2]);
-        this.UI.addOresToMinerUI();
-        this.UI.addSmeltingToUI();
-        this.UI.addCraftingToUI();
+        this.mineralDepositesGenerator.generateDepositRandom(100, this.webGLRenderer);
+        this.webGLRenderer.createMineralDepositsBuffer("mineralVerts", "mineralBuffer", "mineralCounter");
 
     }
 
@@ -311,11 +308,6 @@ $(document).ready(() => {
         if (action) {
             action();
         }
-    });
-
-    $(window).on("resize", function () {
-        main.webGLRenderer.resizeCanvas();
-        main.webGLRenderer.redrawRectangles();
     });
 
     $("#glCanvas").mousemove(function (event) {

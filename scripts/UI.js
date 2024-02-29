@@ -56,6 +56,10 @@ class UI {
             $(".glCanvas-ui-constructorselection").css("display", "none");
         });
 
+        this.addOresToMinerUI();
+        this.addSmeltingToUI();
+        this.addCraftingToUI();
+
     }
 
     addOresToMinerUI() {
@@ -112,6 +116,17 @@ class UI {
         }
     }
 
+    getIDfromBuildingByBuilding(direction){
+
+        for (let i = 0; i < renderer.rectInfos.length; i++) {
+            if (this.mouseX > renderer.rectInfos[i][0] && this.mouseX < renderer.rectInfos[i][0] + 50 && this.mouseY > renderer.rectInfos[i][1] && this.mouseY < renderer.rectInfos[i][1] + 50) {
+                console.log(i);
+                return i;
+            }
+        }
+
+    }
+
     getBuildingIDfromMouse(event, renderer) {
         const rect = $("#glCanvas")[0].getBoundingClientRect();
         this.mouseX = event.clientX - rect.left;
@@ -149,11 +164,11 @@ class UI {
             }
         }
 
-        closeButton.on('click', function () {
+        closeButton.on("click", function () {
             divC.remove();
         });
 
-        showInventory.on('click', function () {
+        showInventory.on("click", function () {
             if (building.name != "Storage") {
                 for (let items in building.internalInventory) {
                     if (building.internalInventory.hasOwnProperty(items)) {
@@ -173,7 +188,7 @@ class UI {
 
         divC.append(closeButton);
         divC.append(showInventory);
-        $('body').append(divC);
+        $("body").append(divC);
     }
 }
 
