@@ -19,8 +19,8 @@ class WebGLRenderer {
         this.scale = 100;
         this.terrainScale = 50;
         this.mineralInfos = [];
-        this.terrainSeed = 115;
-        this.noiseScale = 0.4;
+        this.terrainSeed = 100;
+        this.noiseScale = 0.5;
         this.defaultTerrain = "terrainastroid";
     }
 
@@ -274,37 +274,46 @@ class WebGLRenderer {
                 const x2 = (x1 + (size / canvas.width));
                 const y2 = (y1 - (size / canvas.height));
 
-                let val = this.getNoiseValueAtPosition(x1, y2);
-                const color = [val, val, val, alpha];
+                const getColor = (val) => [val, val, val, alpha];
+
+                const topRightVal = this.getNoiseValueAtPosition(x2, y1);
+                const topLeftVal = this.getNoiseValueAtPosition(x1, y2);
+                const bottomRightVal = this.getNoiseValueAtPosition(x2, y2);
+                const bottomLeftVal = this.getNoiseValueAtPosition(x1, y1);
+
+                const topRightColor = getColor(topRightVal);
+                const topLeftColor = getColor(topLeftVal);
+                const bottomRightColor = getColor(bottomRightVal);
+                const bottomLeftColor = getColor(bottomLeftVal);
 
                 const end = values[Math.floor(Math.random() * values.length)];
                 const end2 = Math.random();
                 if (randSpawn) {
                     if (end2 > threshold) {
                         this[vertPos].push(
-                            x1, y1, end - 0.2, 0.0, ...color,
-                            x1, y2, end - 0.2, 1.0, ...color,
-                            x2, y1, end, 0.0, ...color
+                            x1, y1, end - 0.2, 0.0, ...bottomLeftColor, //bottom left
+                            x1, y2, end - 0.2, 1.0, ...topLeftColor, //top left
+                            x2, y1, end, 0.0, ...bottomRightColor //bottom right
                         );
 
                         this[vertPos].push(
-                            x1, y2, end - 0.2, 1.0, ...color,
-                            x2, y1, end, 0.0, ...color,
-                            x2, y2, end, 1.0, ...color
+                            x1, y2, end - 0.2, 1.0, ...topLeftColor, //top left
+                            x2, y1, end, 0.0, ...bottomRightColor, //bottom right
+                            x2, y2, end, 1.0, ...topRightColor //top right
                         );
 
                     }
                 } else {
                     this[vertPos].push(
-                        x1, y1, end - 0.2, 0.0, ...color,
-                        x1, y2, end - 0.2, 1.0, ...color,
-                        x2, y1, end, 0.0, ...color
+                        x1, y1, end - 0.2, 0.0, ...bottomLeftColor, //bottom left
+                        x1, y2, end - 0.2, 1.0, ...topLeftColor, //top left
+                        x2, y1, end, 0.0, ...bottomRightColor //bottom right
                     );
 
                     this[vertPos].push(
-                        x1, y2, end - 0.2, 1.0, ...color,
-                        x2, y1, end, 0.0, ...color,
-                        x2, y2, end, 1.0, ...color
+                        x1, y2, end - 0.2, 1.0, ...topLeftColor, //top left
+                        x2, y1, end, 0.0, ...bottomRightColor, //bottom right
+                        x2, y2, end, 1.0, ...topRightColor //top right
                     );
                 }
 
@@ -349,19 +358,28 @@ class WebGLRenderer {
                 const start = 0.05;
                 const end = 0.6;
 
-                let val = this.getNoiseValueAtPosition(x1, y1);
-                const defaultColor = [val, val, val, 1];
+                const getColor = (val) => [val, val, val, 1];
+
+                const topRightVal = this.getNoiseValueAtPosition(x2, y1);
+                const topLeftVal = this.getNoiseValueAtPosition(x1, y2);
+                const bottomRightVal = this.getNoiseValueAtPosition(x2, y2);
+                const bottomLeftVal = this.getNoiseValueAtPosition(x1, y1);
+
+                const topRightColor = getColor(topRightVal);
+                const topLeftColor = getColor(topLeftVal);
+                const bottomRightColor = getColor(bottomRightVal);
+                const bottomLeftColor = getColor(bottomLeftVal);
 
                 positions.push(
-                    x1, y1, 0.0, 0.0, ...defaultColor,
-                    x1, y2, 0.0, 1.0, ...defaultColor,
-                    x2, y1, start + Math.random() * end, 0.0, ...defaultColor
+                    x1, y1, 0.0, 0.0, ...bottomLeftColor, //bottom left
+                    x1, y2, 0.0, 1.0, ...topLeftColor, //top left
+                    x2, y1, start + Math.random() * end, 0.0, ...bottomRightColor //bottom right
                 );
 
                 positions.push(
-                    x1, y2, 0.0, 1.0, ...defaultColor,
-                    x2, y1, start + Math.random() * end, 0.0, ...defaultColor,
-                    x2, y2, start + Math.random() * end, 1.0, ...defaultColor
+                    x1, y2, 0.0, 1.0, ...topLeftColor, //top left
+                    x2, y1, start + Math.random() * end, 0.0, ...bottomRightColor, //bottom right
+                    x2, y2, start + Math.random() * end, 1.0, ...topRightColor //top right
                 );
 
                 this.terrainCounter++;

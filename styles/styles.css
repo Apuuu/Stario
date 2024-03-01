@@ -12,8 +12,8 @@ body {
 
 .twod-canvas {
     position: absolute;
-    width: 3440px;
-    height: 3000px;
+    width: 3500px;
+    height: 3500px;
     display: block;
     background-color: rgb(170, 170, 170);
 }

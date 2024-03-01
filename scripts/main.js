@@ -7,6 +7,7 @@ import Constructor from "./buildings/constructor.js";
 import StorageCrate from "./buildings/storageCrate.js";
 import ResourceTransporter from "./buildings/resourcesTransporter.js";
 import mineralDepositesGenerator from "./mineralDepositesGenerator.js";
+import ItemSplitter from "./buildings/itemSplitter.js";
 
 class Main {
 
@@ -21,6 +22,7 @@ class Main {
         this.storages = [];
         this.constructors = [];
         this.resourceTransporters = [];
+        this.splitters = [];
         this.connections = [];
         this.connectionDistance = 500;
         this.buildingsMap = new Map();
@@ -30,8 +32,8 @@ class Main {
     init() {
 
         this.webGLRenderer.initwebGLRenderer();
-        
-        this.mineralDepositesGenerator.generateDepositRandom(100, this.webGLRenderer);
+
+        this.mineralDepositesGenerator.generateDepositRandom(166, this.webGLRenderer);
         this.webGLRenderer.createMineralDepositsBuffer("mineralVerts", "mineralBuffer", "mineralCounter");
     }
 
@@ -213,6 +215,8 @@ $(document).ready(() => {
 
             const distance = calculateDistance(firstSelectionX, firstSelectionY, secondSelectionX, secondSelectionY);
 
+            console.log(main.buildingsMap.get(firstSelection).outputConnectionID2);
+
             if (main.buildingsMap.get(firstSelection).name === "resourceTransporter" && main.buildingsMap.get(secondSelection).name === "resourceTransporter") {
                 if ((distance < main.connectionDistance * 4) && firstSelection !== secondSelection) {
                     main.buildingsMap.get(firstSelection).outputConnectionID = secondSelection;
@@ -222,10 +226,20 @@ $(document).ready(() => {
                 }
             } else {
                 if ((distance < main.connectionDistance) && firstSelection !== secondSelection) {
-                    main.buildingsMap.get(firstSelection).outputConnectionID = secondSelection;
-                    main.buildingsMap.get(secondSelection).inputConnectionID = firstSelection;
-                    main.buildingsMap.get(firstSelection).outputConnection = main.buildingsMap.get(secondSelection);
-                    main.webGLRenderer.addLine(main.webGLRenderer.lineCounter, main.buildingsMap.get(firstSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(firstSelection).posY + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posY + (main.webGLRenderer.scale / 4));
+                    if (main.buildingsMap.get(firstSelection).outputConnectionID == null) {
+                        main.buildingsMap.get(firstSelection).outputConnectionID = secondSelection;
+                        main.buildingsMap.get(secondSelection).inputConnectionID = firstSelection;
+                        main.buildingsMap.get(firstSelection).outputConnection = main.buildingsMap.get(secondSelection);
+                        main.webGLRenderer.addLine(main.webGLRenderer.lineCounter, main.buildingsMap.get(firstSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(firstSelection).posY + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posY + (main.webGLRenderer.scale / 4));
+                    } else if (main.buildingsMap.get(firstSelection).outputConnectionID !== null && main.buildingsMap.get(firstSelection).outputConnectionID2 == "unused") {
+                        console.log("connecting second output");
+                        main.buildingsMap.get(firstSelection).outputConnectionID2 = secondSelection;
+                        main.buildingsMap.get(secondSelection).inputConnectionID = firstSelection;
+                        main.buildingsMap.get(firstSelection).outputConnection2 = main.buildingsMap.get(secondSelection);
+                        main.webGLRenderer.addLine(main.webGLRenderer.lineCounter, main.buildingsMap.get(firstSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(firstSelection).posY + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posY + (main.webGLRenderer.scale / 4));
+                    }else{
+                        console.log("no connection possible");
+                    }
                 }
             }
 
@@ -248,15 +262,28 @@ $(document).ready(() => {
         main.buildingsMap.set(main.webGLRenderer.counter, main.storages[main.webGLRenderer.counter]);
     }
 
+    function placeSplitter() {
+        main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(7));
+        main.splitters[main.webGLRenderer.counter] = new ItemSplitter();
+        main.splitters[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
+        main.splitters[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
+        main.splitters[main.webGLRenderer.counter].activateSplitter();
+        main.buildingsMap.set(main.webGLRenderer.counter, main.splitters[main.webGLRenderer.counter]);
+    }
+
     function placeMiner() {
-        main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
-        main.miners[main.webGLRenderer.counter] = new Miner();
-        main.miners[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
-        main.miners[main.webGLRenderer.counter].setupMiner(main.UI.oreID);
-        main.miners[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-        main.miners[main.webGLRenderer.counter].setEfficiency(1);
-        main.miners[main.webGLRenderer.counter].activateMiner(main.webGLRenderer.counter - 1, main.webGLRenderer);
-        main.buildingsMap.set(main.webGLRenderer.counter, main.miners[main.webGLRenderer.counter]);
+        const ore = main.mineralDepositesGenerator.isDepositAtPosition(event);
+
+        if (ore !== null) {
+            main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
+            main.miners[main.webGLRenderer.counter] = new Miner();
+            main.miners[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
+            main.miners[main.webGLRenderer.counter].setupMiner(ore.oreType);
+            main.miners[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
+            main.miners[main.webGLRenderer.counter].setEfficiency(1);
+            main.miners[main.webGLRenderer.counter].activateMiner(main.webGLRenderer.counter - 1, main.webGLRenderer);
+            main.buildingsMap.set(main.webGLRenderer.counter, main.miners[main.webGLRenderer.counter]);
+        }
     }
 
     function placeFurnace() {
@@ -300,9 +327,10 @@ $(document).ready(() => {
         4: displayBuildingInfos,
         5: createConnection,
         6: placeConstructor,
-        7: placeTransporter
+        7: placeTransporter,
+        8: placeSplitter
     };
-    
+
     $("#glCanvas").on("click", function (event) {
         const action = placeBuildings[main.UI.BuildingID];
         if (action) {

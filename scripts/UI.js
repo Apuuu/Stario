@@ -32,9 +32,6 @@ class UI {
             this.BuildingID = $(event.target).data("type");
             console.log(this.BuildingID);
             switch ($(event.target).data("value")) {
-                case 1:
-                    $(".glCanvas-ui-minerselection").css("display", "block");
-                    break;
                 case 2:
                     $(".glCanvas-ui-furnaceselection").css("display", "block");
                     break;
@@ -141,7 +138,7 @@ class UI {
     }
 
     displayBuildingInformations(building) {
-        const whitelistKeys = ["productionMaterial", "name", "isRunning", "speed", "oreType", "upgradeLevel", "workload", "outputConnectionID", "inputConnectionID", "buildingID"];
+        const whitelistKeys = ["productionMaterial", "name", "isRunning", "speed", "oreType", "upgradeLevel", "workload", "outputConnectionID", "outputConnectionID", "inputConnectionID", "buildingID"];
         const divC = $(`<div class="ui-displaybuildinginfos"></div>`);
         const closeButton = $("<button>Close</button>");
         const showInventory = $("<button>Open Inv</button>");
