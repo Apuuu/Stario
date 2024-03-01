@@ -1,12 +1,12 @@
 import WebGLRenderer from "./webGLRenderer.js"
-import UI from "./UI.js";
-import Storage from "./buildings/storage.js";
+import UI from "./buildings/systems/UI.js";
+import Storage from "./buildings/systems/storage.js";
 import Furnace from "./buildings/furnace.js";
 import Miner from "./buildings/oreHarvester.js";
 import Constructor from "./buildings/constructor.js";
 import StorageCrate from "./buildings/storageCrate.js";
 import ResourceTransporter from "./buildings/resourcesTransporter.js";
-import mineralDepositesGenerator from "./mineralDepositesGenerator.js";
+import mineralDepositesGenerator from "./buildings/systems/mineralDepositesGenerator.js";
 import ItemSplitter from "./buildings/itemSplitter.js";
 
 class Main {

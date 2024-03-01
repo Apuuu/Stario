@@ -1,6 +1,6 @@
-import oreData from "./data/oreData.js";
-import craftingData from "./data/craftingData.js";
-import smeltingData from "./data/smeltingData.js";
+import oreData from "../data/oreData.js";
+import craftingData from "../data/craftingData.js";
+import smeltingData from "../data/smeltingData.js";
 
 class Storage {
     constructor(data = {}) {

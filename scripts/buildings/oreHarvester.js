@@ -1,5 +1,5 @@
 import oreData from './data/oreData.js';
-import Storage from './storage.js';
+import Storage from './systems/storage.js';
 
 class Miner {
     constructor(data = []) {

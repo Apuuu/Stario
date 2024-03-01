@@ -1,4 +1,4 @@
-import Storage from "./storage.js";
+import Storage from "./systems/storage.js";
 import smeltingData from "./data/smeltingData.js";
 
 class Furnace {

@@ -1,4 +1,4 @@
-import Storage from "./storage.js";
+import Storage from "./systems/storage.js";
 
 class StorageCrate {
     constructor(data = {}) {

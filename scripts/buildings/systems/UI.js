@@ -1,6 +1,6 @@
-import oreData from "./buildings/data/oreData.js";
-import craftingData from "./buildings/data/craftingData.js";
-import smeltingData from "./buildings/data/smeltingData.js";
+import oreData from "../data/oreData.js";
+import craftingData from "../data/craftingData.js";
+import smeltingData from "../data/smeltingData.js";
 
 class UI {
 
@@ -138,7 +138,7 @@ class UI {
     }
 
     displayBuildingInformations(building) {
-        const whitelistKeys = ["productionMaterial", "name", "isRunning", "speed", "oreType", "upgradeLevel", "workload", "outputConnectionID", "outputConnectionID", "inputConnectionID", "buildingID"];
+        const whitelistKeys = ["productionMaterial", "name", "isRunning", "speed", "oreType", "upgradeLevel", "workload", "outputConnectionID", "outputConnectionID2", "inputConnectionID", "buildingID"];
         const divC = $(`<div class="ui-displaybuildinginfos"></div>`);
         const closeButton = $("<button>Close</button>");
         const showInventory = $("<button>Open Inv</button>");
