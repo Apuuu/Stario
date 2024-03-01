@@ -57,6 +57,7 @@ $(document).ready(() => {
             storages: main.storages,
             constructors: main.constructors,
             transporters: main.resourceTransporters,
+            splitters: main.splitters,
         };
 
         const gameStateStr = JSON.stringify(gameState);
@@ -153,7 +154,22 @@ $(document).ready(() => {
                     }
                 });
             } else {
-                main.storages = [];
+                main.transporters = [];
+            }
+
+            if (gameState.splitters) {
+                main.splitters = gameState.splitters.map((data, index) => {
+                    if (index === 0) {
+                        return null;
+                    } else if (data !== null) {
+                        const newSplitter = new ItemSplitter(data);
+                        newSplitter.activateSplitter();
+                        main.buildingsMap.set(index, newSplitter);
+                        return newSplitter
+                    }
+                });
+            } else {
+                main.splitters = [];
             }
         }
 
@@ -161,6 +177,10 @@ $(document).ready(() => {
             if (value !== null) {
                 if (value.outputConnectionID !== null) {
                     value.outputConnection = main.buildingsMap.get(value.outputConnectionID);
+                }
+
+                if (value.outputConnectionID2 !== null) {
+                    value.outputConnection2 = main.buildingsMap.get(value.outputConnectionID2);
                 }
             }
         }
@@ -237,7 +257,7 @@ $(document).ready(() => {
                         main.buildingsMap.get(secondSelection).inputConnectionID = firstSelection;
                         main.buildingsMap.get(firstSelection).outputConnection2 = main.buildingsMap.get(secondSelection);
                         main.webGLRenderer.addLine(main.webGLRenderer.lineCounter, main.buildingsMap.get(firstSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(firstSelection).posY + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posX + (main.webGLRenderer.scale / 4), main.buildingsMap.get(secondSelection).posY + (main.webGLRenderer.scale / 4));
-                    }else{
+                    } else {
                         console.log("no connection possible");
                     }
                 }
