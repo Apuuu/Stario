@@ -12,9 +12,10 @@ class ItemSplitter {
         this.outputConnection2 = data.outputConnection2 || null;
         this.internalInventory = data.internalInventory || new Storage();
         this.side = 1;
+        this.progress = 0;
     }
 
-    activateSplitter() {
+    activateSplitter(id, renderer) {
         this.interval = setInterval(() => {
             if (this.outputConnection && this.outputConnection2) {
                 this.internalInventory.resources.forEach(resource => {
@@ -23,9 +24,16 @@ class ItemSplitter {
                         targetConnection.internalInventory[resource] += 1;
                         this.internalInventory[resource] -= 1;
                         this.side = this.side === 1 ? 0 : 1;
+                        if (this.side === 0) {
+                            this.progress = 0.2;
+                        } else {
+                            this.progress = 0.4;
+                        }
                     }
                 });
             }
+
+            renderer.updateProgress(id, this.progress);
         }, 100);
     }
 

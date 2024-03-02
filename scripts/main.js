@@ -163,7 +163,7 @@ $(document).ready(() => {
                         return null;
                     } else if (data !== null) {
                         const newSplitter = new ItemSplitter(data);
-                        newSplitter.activateSplitter();
+                        newSplitter.activateSplitter(index - 1, main.webGLRenderer);
                         main.buildingsMap.set(index, newSplitter);
                         return newSplitter
                     }
@@ -283,11 +283,11 @@ $(document).ready(() => {
     }
 
     function placeSplitter() {
-        main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(7));
+        main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
         main.splitters[main.webGLRenderer.counter] = new ItemSplitter();
         main.splitters[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
         main.splitters[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-        main.splitters[main.webGLRenderer.counter].activateSplitter();
+        main.splitters[main.webGLRenderer.counter].activateSplitter(main.webGLRenderer.counter - 1, main.webGLRenderer);
         main.buildingsMap.set(main.webGLRenderer.counter, main.splitters[main.webGLRenderer.counter]);
     }
 

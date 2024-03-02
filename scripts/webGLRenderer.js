@@ -58,12 +58,12 @@ class WebGLRenderer {
         this.loadTexture("furnaceprogressbar", "scripts/buildings/img/furnace/furnace3doc.png");
         this.loadTexture("constructorprogressbar", "scripts/buildings/img/constructor/constructor3d.png");
         this.loadTexture("storageprogressbar", "scripts/buildings/img/storage/storage3doc.png");
-        this.loadTexture("terraingrass", "scripts/buildings/img/terrain/grass.png");
         this.loadTexture("terrainastroid", "scripts/buildings/img/terrain/astroid.png");
         this.loadTexture("terrainPebbles", "scripts/buildings/img/terrain/terrainpebbles.png");
         this.loadTexture("terrainCraters", "scripts/buildings/img/terrain/tempcraters.png");
         this.loadTexture("terrainDust", "scripts/buildings/img/terrain/dust.png");
         this.loadTexture("resource", "scripts/buildings/img/terrain/resourcenode.png");
+        this.loadTexture("splitterprogressbar", "scripts/buildings/img/splitter/splitter.png");
 
         this.vsSource = `
             attribute vec4 aPosition;
@@ -124,7 +124,7 @@ class WebGLRenderer {
         this.gl.useProgram(this.shaderProgram);
 
         this.astroidTerrain();
-        this.createParticleSystem(200, "part1", 1750, 1350, 900, 1850, 1750, [1, 1, 1, Math.random() * 0.3]);
+        this.createParticleSystem(200, "part1", 1750, 1350, 900, 1850, 1750, [1, 1, 1, Math.random()*0.4]);
     }
 
     astroidTerrain() {
@@ -226,12 +226,8 @@ class WebGLRenderer {
         }
     }
 
-    drawParticleSystem(particlesArray, particlesPos) {
-        this.randomizeParticleSystem(particlesArray, 400, 100, 0.01);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["terrainDust"]);
-        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
-        this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
-        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
+    drawParticles(particlesArray, particlesPos, buffer, textureID) {
+        this.randomizeParticleSystem(particlesArray, 400, 400, 0.01);
         const canvas = this.canvas;
         const halfWidth = canvas.width / 2;
         const halfHeight = canvas.height / 2;
@@ -246,16 +242,29 @@ class WebGLRenderer {
                 x1, y1, 0.0, 0.0, ...color,
                 x1, y2, 0.0, 1, ...color,
                 x2, y1, 1, 0.0, ...color,
+
+                x1, y2, 0.0, 1, ...color,
+                x2, y1, 1, 0.0, ...color,
                 x2, y2, 1, 1, ...color
             );
-            this[particlesPos] = particlesData;
-            this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this[particlesPos]), this.gl.STATIC_DRAW);
-            this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
-            this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
-            this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
-            this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
-            particlesData.length = 0;
         }
+        this[particlesPos] = particlesData;
+        if (!this[buffer]) {
+            this[buffer] = this.gl.createBuffer();
+        }
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this[particlesPos]), this.gl.STATIC_DRAW);
+        particlesData.length = 0;
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureID]);
+        this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
+        this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
+        this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
+        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+        this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
+        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, this[particlesArray].length * 6);
     }
 
     createTerrainOverlay(vertPos, buffer, scale, counter, randSize, minSize, randSpawn, threshold, alpha) {
@@ -394,7 +403,10 @@ class WebGLRenderer {
 
     drawTerrain(textureID) {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.terrainBuffer);
+
+        this.gl.activeTexture(this.gl.TEXTURE0);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureID]);
+
         this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
         this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
         this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
@@ -510,7 +522,7 @@ class WebGLRenderer {
         this.renderAstroidTerrain();
         this.redrawLines();
         this.redrawRectangles();
-        this.drawParticleSystem("part1");
+        this.drawParticles("part1", "particlesPos", "particleBuffer", "terrainDust");
     }
 
     createShader(type, source) {
@@ -554,10 +566,11 @@ class WebGLRenderer {
         this.buildingIDMap.set(1, "furnaceprogressbar"); //furnace
         this.buildingIDMap.set(2, "minerprogressbar"); //miner
         this.buildingIDMap.set(3, "storageprogressbar"); //storage
-        this.buildingIDMap.set(4, "miner");
-        this.buildingIDMap.set(5, "furnace");
+        this.buildingIDMap.set(4, "storageprogressbar");
+        this.buildingIDMap.set(5, "storageprogressbar");
         this.buildingIDMap.set(6, "constructorprogressbar"); //constructor
-        this.buildingIDMap.set(7, "storageprogressbar"); //constructor
+        this.buildingIDMap.set(7, "storageprogressbar"); //transporter
+        this.buildingIDMap.set(8, "minerprogressbar"); //splitter
     }
 }
 
