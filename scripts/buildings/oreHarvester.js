@@ -36,12 +36,12 @@ class Miner {
     setProgressSteps() {
         let prog = this.progress / this.workload;
         this.progressSteps = Math.floor(prog * 5) / 5;
-        if(this.progressSteps > 0.8) {
+        if (this.progressSteps > 0.8) {
             this.progressSteps = 0.8;
         }
     }
 
-    activateMiner(id, renderer) {
+    activateMiner(id, renderer, tracker) {
         if (!this.isRunning) {
             this.isRunning = true;
             if (this.progress < this.workload) {
@@ -53,6 +53,8 @@ class Miner {
                         if (this.progress >= this.workload) {
                             this.internalInventory[this.oreType] += 1;
                             this.progress = 0;
+
+                            tracker.internalInventory[this.oreType] += this.transferSpeed;
                         }
                     } else {
                         this.deactivateMiner();
@@ -60,13 +62,8 @@ class Miner {
                     }
 
                     if (this.outputConnection && this.internalInventory[this.oreType] >= this.transferSpeed) {
-                        if (this.outputConnection.name != "Storage") {
-                            this.outputConnection.internalInventory[this.oreType] += this.transferSpeed;
-                            this.internalInventory[this.oreType] -= this.transferSpeed;
-                        } else {
-                            this.outputConnection[this.oreType] += this.transferSpeed;
-                            this.internalInventory[this.oreType] -= this.transferSpeed;
-                        }
+                        this.outputConnection[this.oreType] += this.transferSpeed;
+                        this.internalInventory[this.oreType] -= this.transferSpeed;
                     }
 
                 }, 100);

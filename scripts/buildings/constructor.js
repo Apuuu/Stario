@@ -34,7 +34,7 @@ class Constructor {
         this.craftingMaterials = output.inputMaterials;
     }
 
-    activateConstructor(id, renderer) {
+    activateConstructor(id, renderer, tracker) {
         if (!this.isRunning) {
             this.isRunning = true;
             if (this.progress < this.workload) {
@@ -53,6 +53,7 @@ class Constructor {
                                 this.internalInventory[material] -= this.craftingMaterials[material];
                             }
                             this.progress = 0;
+                            tracker.internalInventory[this.productionMaterial] += 1;
                         }
                     }
 

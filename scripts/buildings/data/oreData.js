@@ -34,6 +34,11 @@ const oreData = [
         workload: 100,
         weight: 100000
     },
+    {
+        oretype: "uranium",
+        workload: 250,
+        weight: 100
+    },
     
 ];
 

@@ -8,6 +8,7 @@ import StorageCrate from "./buildings/storageCrate.js";
 import ResourceTransporter from "./buildings/resourcesTransporter.js";
 import mineralDepositesGenerator from "./buildings/systems/mineralDepositesGenerator.js";
 import ItemSplitter from "./buildings/itemSplitter.js";
+import ProgressTracker from "./buildings/systems/progressTracking.js";
 
 class Main {
 
@@ -16,6 +17,7 @@ class Main {
         this.UI = new UI();
         this.storgeUnit = new Storage();
         this.mineralDepositesGenerator = new mineralDepositesGenerator();
+        this.progressTracker = new ProgressTracker();
         this.deposites = [];
         this.furnaces = [];
         this.miners = [];
@@ -34,6 +36,7 @@ class Main {
         this.webGLRenderer.initwebGLRenderer();
 
         this.mineralDepositesGenerator.generateDepositRandom(166, this.webGLRenderer);
+        
         this.webGLRenderer.createMineralDepositsBuffer("mineralVerts", "mineralBuffer", "mineralCounter");
     }
 
@@ -83,7 +86,7 @@ $(document).ready(() => {
                         const newMiner = new Miner(data);
                         newMiner.internalInventory = data.internalInventory;
                         newMiner.isRunning = false;
-                        newMiner.activateMiner(index - 1, main.webGLRenderer);
+                        newMiner.activateMiner(index - 1, main.webGLRenderer, main.progressTracker);
                         main.buildingsMap.set(index, newMiner);
                         return newMiner
                     }
@@ -100,7 +103,7 @@ $(document).ready(() => {
                         const newFurnace = new Furnace(data);
                         newFurnace.internalInventory = data.internalInventory;
                         newFurnace.isRunning = false;
-                        newFurnace.activateFurnace(index - 1, main.webGLRenderer);
+                        newFurnace.activateFurnace(index - 1, main.webGLRenderer, main.progressTracker);
                         main.buildingsMap.set(index, newFurnace);
                         return newFurnace
                     }
@@ -132,7 +135,7 @@ $(document).ready(() => {
                         const newConstructor = new Constructor(data);
                         newConstructor.internalInventory = data.internalInventory;
                         newConstructor.isRunning = false;
-                        newConstructor.activateConstructor(index - 1, main.webGLRenderer);
+                        newConstructor.activateConstructor(index - 1, main.webGLRenderer, main.progressTracker);
                         main.buildingsMap.set(index, newConstructor);
                         return newConstructor
                     }
@@ -301,7 +304,7 @@ $(document).ready(() => {
             main.miners[main.webGLRenderer.counter].setupMiner(ore.oreType);
             main.miners[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
             main.miners[main.webGLRenderer.counter].setEfficiency(1);
-            main.miners[main.webGLRenderer.counter].activateMiner(main.webGLRenderer.counter - 1, main.webGLRenderer);
+            main.miners[main.webGLRenderer.counter].activateMiner(main.webGLRenderer.counter - 1, main.webGLRenderer, main.progressTracker);
             main.buildingsMap.set(main.webGLRenderer.counter, main.miners[main.webGLRenderer.counter]);
         }
     }
@@ -338,6 +341,10 @@ $(document).ready(() => {
     $("#printMap").click(function () {
         console.log(main.buildingsMap);
         console.log(main.webGLRenderer.rectInfos);
+    });
+
+    $("#printTracker").click(function () {
+        console.log(main.progressTracker.internalInventory);
     });
 
     const placeBuildings = {

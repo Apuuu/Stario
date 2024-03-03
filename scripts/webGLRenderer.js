@@ -1,3 +1,6 @@
+import { vertexShaderS, fragmentShaderS } from './shaders/defaultShader/defaultShader.js';
+import { brightnessFilterShader, blurShader, blendShader } from './shaders/bloomShader/bloomShader.js';
+
 class WebGLRenderer {
 
     constructor() {
@@ -12,8 +15,8 @@ class WebGLRenderer {
         this.lineInfos = [];
         this.terrainInfos = [];
         this.textures = [];
-        this.vsSource = "";
-        this.fsSource = "";
+        this.vsSource = null;
+        this.fsSource = null;
         this.shaderProgram = null;
         this.buildingIDMap = new Map();
         this.scale = 100;
@@ -22,6 +25,7 @@ class WebGLRenderer {
         this.terrainSeed = 100;
         this.noiseScale = 0.5;
         this.defaultTerrain = "terrainastroid";
+        this.terrainTheme = [1, 1, 1, 1.0];
     }
 
     async loadTexture(id, url) {
@@ -65,37 +69,11 @@ class WebGLRenderer {
         this.loadTexture("resource", "scripts/buildings/img/terrain/resourcenode.png");
         this.loadTexture("splitterprogressbar", "scripts/buildings/img/splitter/splitter.png");
 
-        this.vsSource = `
-            attribute vec4 aPosition;
-            attribute vec2 aTexCoord;
-            attribute vec4 aColor;
-            varying vec2 vTexCoord;
-            varying vec4 vColor;
-            void main() {
-                gl_Position = aPosition;
-                vTexCoord = aTexCoord;
-                vColor = aColor;
-            }
-        `;
+        const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderS);
+        const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderS);
 
-        this.fsSource = `
-            precision mediump float;
-            uniform sampler2D uTexture;
-            uniform bool smoothOut;
-            varying vec2 vTexCoord;
-            varying vec4 vColor;
-            void main() {
-                vec4 textureColor = texture2D(uTexture, vTexCoord);
-                vec4 color = textureColor * vColor;
-                float distanceFromCenter;
-                distanceFromCenter = smoothOut ? 2.0 - length(vTexCoord - vec2(0.5, 0.5)) * 3.0 : 1.0;
-                gl_FragColor = color*distanceFromCenter;
-            }
-        `;
-
-        const vertexShader = this.createShader(this.gl.VERTEX_SHADER, this.vsSource);
-        const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, this.fsSource);
         this.shaderProgram = this.createProgram(vertexShader, fragmentShader);
+
 
         const vertices = [
             -0.5, 0.5,
@@ -124,15 +102,16 @@ class WebGLRenderer {
         this.gl.useProgram(this.shaderProgram);
 
         this.astroidTerrain();
-        this.createParticleSystem(200, "part1", 1750, 1350, 900, 1850, 1750, [1, 1, 1, Math.random()*0.4]);
+
+        this.createParticleSystem(200, "part1", 1750, 1350, 1200, 1850, 1750, [1, 1, 1, 0.35]);
     }
 
     astroidTerrain() {
         this.defaultTerrain = "terrainastroid";
-        this.generateTerrain();
-        this.createTerrainOverlay("pebblesVerts", "pebblesBuffer", 60, "pebblesCounter", 100, 20, false, 0, 1);
-        this.createTerrainOverlay("pebblesVerts2", "pebblesBuffer2", 70, "pebblesCounter2", 100, 20, false, 0, 0.1);
-        this.createTerrainOverlay("cratersVerts", "cratersBuffer", 80, "cratersCounter", 350, 20, true, 0.98, 1);
+        this.generateTerrain(this.terrainTheme);
+        this.createTerrainOverlay("pebblesVerts", "pebblesBuffer", 60, "pebblesCounter", 100, 20, false, 0, 1, this.terrainTheme);
+        this.createTerrainOverlay("pebblesVerts2", "pebblesBuffer2", 70, "pebblesCounter2", 100, 20, false, 0, 0.1, this.terrainTheme);
+        this.createTerrainOverlay("cratersVerts", "cratersBuffer", 80, "cratersCounter", 350, 20, true, 0.98, 1, this.terrainTheme);
     }
 
     renderAstroidTerrain() {
@@ -163,15 +142,15 @@ class WebGLRenderer {
             const y2 = (y1 - (this.scale / canvas.height));
 
             this[mineralVerts].push(
-                x1, y1, 0.0, 0.0, ...this.mineralInfos[i].oreColor,
-                x1, y2, 0.0, 1.0, ...this.mineralInfos[i].oreColor,
-                x2, y1, 1, 0.0, ...this.mineralInfos[i].oreColor
+                x1, y1, this.mineralInfos[i].offset1, 0.0, ...this.mineralInfos[i].oreColor,
+                x1, y2, this.mineralInfos[i].offset1, 1.0, ...this.mineralInfos[i].oreColor,
+                x2, y1, this.mineralInfos[i].offset2, 0.0, ...this.mineralInfos[i].oreColor
             );
 
             this[mineralVerts].push(
-                x1, y2, 0.0, 1.0, ...this.mineralInfos[i].oreColor,
-                x2, y1, 1, 0.0, ...this.mineralInfos[i].oreColor,
-                x2, y2, 1, 1, ...this.mineralInfos[i].oreColor
+                x1, y2, this.mineralInfos[i].offset1, 1.0, ...this.mineralInfos[i].oreColor,
+                x2, y1, this.mineralInfos[i].offset2, 0.0, ...this.mineralInfos[i].oreColor,
+                x2, y2, this.mineralInfos[i].offset2, 1, ...this.mineralInfos[i].oreColor
             );
 
             if (this[counter] === undefined) {
@@ -188,7 +167,6 @@ class WebGLRenderer {
     }
 
     drawMineralDeposits(buffer, counter) {
-        this.gl.uniform1i(this.smoothOutLocation, true ? 1 : 0);
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures["resource"]);
         this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
@@ -197,7 +175,6 @@ class WebGLRenderer {
         this.gl.enableVertexAttribArray(this.colorAttributeLocation);
         this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
         this.gl.drawArrays(this.gl.TRIANGLES, 0, this[counter] * 6);
-        this.gl.uniform1i(this.smoothOutLocation, false ? 1 : 0);
     }
 
     createParticleSystem(amount, particelsArray, startPosX, startPosY, scale, distribX, distribY, color) {
@@ -227,7 +204,7 @@ class WebGLRenderer {
     }
 
     drawParticles(particlesArray, particlesPos, buffer, textureID) {
-        this.randomizeParticleSystem(particlesArray, 400, 400, 0.01);
+        this.randomizeParticleSystem(particlesArray, 400, 100, 0.01);
         const canvas = this.canvas;
         const halfWidth = canvas.width / 2;
         const halfHeight = canvas.height / 2;
@@ -267,7 +244,7 @@ class WebGLRenderer {
         this.gl.drawArrays(this.gl.TRIANGLES, 0, this[particlesArray].length * 6);
     }
 
-    createTerrainOverlay(vertPos, buffer, scale, counter, randSize, minSize, randSpawn, threshold, alpha) {
+    createTerrainOverlay(vertPos, buffer, scale, counter, randSize, minSize, randSpawn, threshold, alpha, colorMul) {
         this[vertPos] = [];
         const values = [0.2, 0.4, 0.6, 0.8, 1.0];
 
@@ -283,7 +260,7 @@ class WebGLRenderer {
                 const x2 = (x1 + (size / canvas.width));
                 const y2 = (y1 - (size / canvas.height));
 
-                const getColor = (val) => [val, val, val, alpha];
+                const getColor = (val) => [val * colorMul[0], val * colorMul[1], val * colorMul[2], alpha * colorMul[3]];
 
                 const topRightVal = this.getNoiseValueAtPosition(x2, y1);
                 const topLeftVal = this.getNoiseValueAtPosition(x1, y2);
@@ -351,7 +328,7 @@ class WebGLRenderer {
         this.gl.drawArrays(this.gl.TRIANGLES, 0, this[counter] * 6);
     }
 
-    generateTerrain() {
+    generateTerrain(colorMul) {
         let positions = [];
 
         for (let i = 0; i < this.canvas.width / (this.terrainScale / 2); i++) {
@@ -367,7 +344,7 @@ class WebGLRenderer {
                 const start = 0.05;
                 const end = 0.6;
 
-                const getColor = (val) => [val, val, val, 1];
+                const getColor = (val) => [val * colorMul[0], val * colorMul[1], val * colorMul[2], 1 * colorMul[3]];
 
                 const topRightVal = this.getNoiseValueAtPosition(x2, y1);
                 const topLeftVal = this.getNoiseValueAtPosition(x1, y2);

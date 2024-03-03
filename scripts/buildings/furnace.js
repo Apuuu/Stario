@@ -36,7 +36,7 @@ class Furnace {
         }
     }
 
-    activateFurnace(id, renderer) {
+    activateFurnace(id, renderer, tracker) {
 
         if (!this.isRunning) {
             this.isRunning = true;
@@ -56,6 +56,7 @@ class Furnace {
                                 this.internalInventory[material] -= this.craftingMaterials[material];
                             }
                             this.progress = 0;
+                            tracker.internalInventory[this.productionMaterial] += this.outputAmount;
                         }
                     }
 
