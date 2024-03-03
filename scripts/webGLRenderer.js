@@ -26,6 +26,7 @@ class WebGLRenderer {
         this.noiseScale = 0.5;
         this.defaultTerrain = "terrainastroid";
         this.terrainTheme = [1, 1, 1, 1.0];
+        this.shinyResourcesCounter = 0;
     }
 
     async loadTexture(id, url) {
@@ -68,6 +69,7 @@ class WebGLRenderer {
         this.loadTexture("terrainDust", "scripts/buildings/img/terrain/dust.png");
         this.loadTexture("resource", "scripts/buildings/img/terrain/resourcenode.png");
         this.loadTexture("splitterprogressbar", "scripts/buildings/img/splitter/splitter.png");
+        this.loadTexture("particle", "scripts/buildings/img/terrain/particle.png");
 
         const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderS);
         const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderS);
@@ -103,7 +105,7 @@ class WebGLRenderer {
 
         this.astroidTerrain();
 
-        this.createParticleSystem(200, "part1", 1750, 1350, 1200, 1850, 1750, [1, 1, 1, 0.35]);
+        this.createParticleSystem(200, "part1", 1750, 1350, 1200, 1850, 1750, [1, 1, 1, 0.3]);
     }
 
     astroidTerrain() {
@@ -140,6 +142,10 @@ class WebGLRenderer {
             const y1 = ((canvas.height / 2 - y) / (canvas.height / 2));
             const x2 = (x1 + (this.scale / canvas.width));
             const y2 = (y1 - (this.scale / canvas.height));
+            if(this.mineralInfos[i].oreType == "uranium") {
+                this.createParticleSystem(10, `uranium${this.shinyResourcesCounter}`, x, y, 15, 25, 25, [this.mineralInfos[i].oreColor[0],this.mineralInfos[i].oreColor[1],this.mineralInfos[i].oreColor[2], 1]);
+                this.shinyResourcesCounter++;
+            }
 
             this[mineralVerts].push(
                 x1, y1, this.mineralInfos[i].offset1, 0.0, ...this.mineralInfos[i].oreColor,
@@ -187,15 +193,19 @@ class WebGLRenderer {
     }
 
     randomizeParticleSystem(particlesArray, mulX, mulY, speed) {
+        const lerp = (a, b, t) => a + (b - a) * t;
+    
         for (let i = 0; i < this[particlesArray].length; i++) {
-
             if (i == this[particlesArray].length - 1) {
                 this[particlesArray][i][0] = -10000;
                 this[particlesArray][i][1] = -10000;
             } else {
-                this[particlesArray][i][0] += (-50 + (Math.random() * mulX * 1)) * speed;
-                this[particlesArray][i][1] += (-mulY + (Math.random() * mulY * 2)) * speed;
-
+                const targetX = this[particlesArray][i][0] + (-mulX + (Math.random() * mulX * 2)) * speed;
+                const targetY = this[particlesArray][i][1] + (-mulY + (Math.random() * mulY * 2)) * speed;
+    
+                this[particlesArray][i][0] = lerp(this[particlesArray][i][0], targetX, 0.05);
+                this[particlesArray][i][1] = lerp(this[particlesArray][i][1], targetY, 0.05);
+    
                 if (this[particlesArray][i][0] > this.canvas.width) {
                     this[particlesArray][i][0] = 0;
                 }
@@ -203,8 +213,70 @@ class WebGLRenderer {
         }
     }
 
-    drawParticles(particlesArray, particlesPos, buffer, textureID) {
-        this.randomizeParticleSystem(particlesArray, 400, 100, 0.01);
+    windParticleSystem(particlesArray, mulX, mulY, speed) {
+        const lerp = (a, b, t) => a + (b - a) * t;
+    
+        for (let i = 0; i < this[particlesArray].length; i++) {
+            if (i == this[particlesArray].length - 1) {
+                this[particlesArray][i][0] = -10000;
+                this[particlesArray][i][1] = -10000;
+            } else {
+                const targetX = this[particlesArray][i][0] + (-10 + (Math.random() * mulX * 2)) * speed;
+                const targetY = this[particlesArray][i][1] + (-mulY + (Math.random() * mulY * 2)) * speed;
+    
+                this[particlesArray][i][0] = lerp(this[particlesArray][i][0], targetX, 0.05);
+                this[particlesArray][i][1] = lerp(this[particlesArray][i][1], targetY, 0.05);
+    
+                if (this[particlesArray][i][0] > this.canvas.width) {
+                    this[particlesArray][i][0] = 0;
+                }
+            }
+        }
+    }
+
+    drawWindParticles(particlesArray, particlesPos, buffer, textureID) {
+        this.windParticleSystem(particlesArray, 500, 500, 0.1);
+        const canvas = this.canvas;
+        const halfWidth = canvas.width / 2;
+        const halfHeight = canvas.height / 2;
+        const particlesData = [];
+        for (let i = 0; i < this[particlesArray].length; i++) {
+            const x1 = ((this[particlesArray][i][0] - halfWidth) / halfWidth);
+            const y1 = ((halfHeight - this[particlesArray][i][1]) / halfHeight);
+            const x2 = (x1 + (this[particlesArray][i][3] / canvas.width));
+            const y2 = (y1 - (this[particlesArray][i][3] / canvas.height));
+            const color = this[particlesArray][i][2];
+            particlesData.push(
+                x1, y1, 0.0, 0.0, ...color,
+                x1, y2, 0.0, 1, ...color,
+                x2, y1, 1, 0.0, ...color,
+
+                x1, y2, 0.0, 1, ...color,
+                x2, y1, 1, 0.0, ...color,
+                x2, y2, 1, 1, ...color
+            );
+        }
+        this[particlesPos] = particlesData;
+        if (!this[buffer]) {
+            this[buffer] = this.gl.createBuffer();
+        }
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(this[particlesPos]), this.gl.STATIC_DRAW);
+        particlesData.length = 0;
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this[buffer]);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureID]);
+        this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
+        this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
+        this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
+        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
+        this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
+        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, this[particlesArray].length * 6);
+    }
+
+    drawRandomParticles(particlesArray, particlesPos, buffer, textureID) {
+        this.randomizeParticleSystem(particlesArray, 1000, 1000, 0.02);
         const canvas = this.canvas;
         const halfWidth = canvas.width / 2;
         const halfHeight = canvas.height / 2;
@@ -499,7 +571,10 @@ class WebGLRenderer {
         this.renderAstroidTerrain();
         this.redrawLines();
         this.redrawRectangles();
-        this.drawParticles("part1", "particlesPos", "particleBuffer", "terrainDust");
+        for (let i = 0; i < this.shinyResourcesCounter; i++) {
+            this.drawRandomParticles(`uranium${i}`, `uraniumPos${i}`, `uraniumBuffer${i}`, "particle");
+        }
+        this.drawWindParticles("part1", "particlesPos", "particleBuffer", "terrainDust");
     }
 
     createShader(type, source) {
