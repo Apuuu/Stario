@@ -1,4 +1,4 @@
-import WebGLRenderer from "./webGLRenderer.js"
+import WebGLRenderer from "./webGL/webGLRenderer.js"
 import UI from "./buildings/systems/UI.js";
 import Storage from "./buildings/systems/storage.js";
 import Furnace from "./buildings/furnace.js";

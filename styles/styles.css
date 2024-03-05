@@ -5,17 +5,17 @@ body {
 
 .webgl-canvas {
     position: absolute;
-    width: 3500px;
-    height: 3500px;
+    width: 5000px;
+    height: 5000px;
     display: block;
 }
 
 .twod-canvas {
     position: absolute;
-    width: 3500px;
-    height: 3500px;
+    width: 5000px;
+    height: 5000px;
     display: block;
-    background-color: rgb(170, 170, 170);
+    background-color: rgb(0, 0, 0);
 }
 
 .glCanvas-uiContainer-debuginfos {

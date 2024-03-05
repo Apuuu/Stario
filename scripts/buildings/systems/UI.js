@@ -113,17 +113,6 @@ class UI {
         }
     }
 
-    getIDfromBuildingByBuilding(direction){
-
-        for (let i = 0; i < renderer.rectInfos.length; i++) {
-            if (this.mouseX > renderer.rectInfos[i][0] && this.mouseX < renderer.rectInfos[i][0] + 50 && this.mouseY > renderer.rectInfos[i][1] && this.mouseY < renderer.rectInfos[i][1] + 50) {
-                console.log(i);
-                return i;
-            }
-        }
-
-    }
-
     getBuildingIDfromMouse(event, renderer) {
         const rect = $("#glCanvas")[0].getBoundingClientRect();
         this.mouseX = event.clientX - rect.left;
