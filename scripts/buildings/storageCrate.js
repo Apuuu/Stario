@@ -11,7 +11,11 @@ class StorageCrate {
         this.internalInventory = data.internalInventory || new Storage();
     }
 
-    activateStorageCrate() {
+    setupBuilding() {
+        console.log("Empty setupBuilding function");
+    }
+
+    activateBuilding(id, renderer, tracker) {
         this.interval = setInterval(() => {
             if (this.outputConnection) {
                 this.internalInventory.resources.forEach(resource => {

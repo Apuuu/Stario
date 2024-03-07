@@ -12,10 +12,10 @@ class Storage {
         this.outputConnectionID = data.outputConnectionID || null;
         this.outputConnection = null;
         this.resources = data.resources || [];
-        this.setupStorage();
+        this.setupBuilding();
     }
 
-    setupStorage() {
+    setupBuilding() {
 
         const ores = oreData.map(ore => ore.oretype);
         ores.forEach(ore => {
@@ -31,7 +31,7 @@ class Storage {
         smeltingMaterials.forEach(material => {
             this[material] = 0;
         });
-        
+
         this.resources = [...ores, ...craftingMaterials, ...smeltingMaterials];
 
     }
@@ -48,21 +48,12 @@ class Storage {
     activateStorage() {
         this.interval = setInterval(() => {
             if (this.outputConnection) {
-                if (this.outputConnection.name === "Storage") {
-                    this.resources.forEach(resource => {
-                        if (this[resource] > 0) {
-                            this.outputConnection[resource] += 1;
-                            this[resource] -= 1;
-                        }
-                    });
-                } else {
-                    this.resources.forEach(resource => {
-                        if (this[resource] > 0) {
-                            this.outputConnection.internalInventory[resource] += 1;
-                            this[resource] -= 1;
-                        }
-                    });
-                }
+                this.resources.forEach(resource => {
+                    if (this[resource] > 0) {
+                        this.outputConnection.internalInventory[resource] += 1;
+                        this[resource] -= 1;
+                    }
+                });
             }
         }, 1000);
     }

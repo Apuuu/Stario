@@ -1,7 +1,11 @@
 import { vertexShaderS, fragmentShaderS } from '../shaders/defaultShader/defaultShader.js';
+import { vertexShaderMouse, fragmentShaderMouse } from '../shaders/mouseShader/mouseShader.js';
+
 import ParticleSystem from './extensions/particleSystem.js';
 import TerrainGenerator from './extensions/terrainGenerator.js';
 import TerrainOverlayGenerator from './extensions/terrainOverlayGenerator.js';
+import buildingRenderer from './extensions/buildingRenderer.js';
+import MouseOverlay from './extensions/mouseOverlay.js';
 
 class WebGLRenderer {
 
@@ -11,27 +15,19 @@ class WebGLRenderer {
         this.gl = this.canvas.getContext("webgl2");
         this.counter = 0;
         this.lineCounter = 0;
-        this.terrainCounter = 0;
-        this.terrainPebblesCounter = 0;
         this.rectInfos = [];
         this.lineInfos = [];
         this.terrainInfos = [];
         this.textures = [];
-        this.vsSource = null;
-        this.fsSource = null;
         this.shaderProgram = null;
         this.buildingIDMap = new Map();
         this.scale = 100;
-        this.terrainScale = 50;
         this.mineralInfos = [];
-        this.terrainSeed = 100;
-        this.noiseScale = 0.5;
-        this.defaultTerrain = "terrainastroid";
-        this.terrainTheme = [1, 1, 1, 1.0];
         this.shinyResourcesCounter = 0;
         this.particleSystems = [];
         this.terrain = [];
         this.terrainOverlay = [];
+        this.layersOfBuildings = 5;
     }
 
     async loadTexture(id, url) {
@@ -75,11 +71,17 @@ class WebGLRenderer {
         this.loadTexture("resource", "scripts/buildings/img/terrain/resourcenode.png");
         this.loadTexture("splitterprogressbar", "scripts/buildings/img/splitter/splitter.png");
         this.loadTexture("particle", "scripts/buildings/img/terrain/particle.png");
+        this.loadTexture("buildingsAtlas", "scripts/buildings/img/buildings.png");
 
         const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderS);
         const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderS);
 
         this.shaderProgram = this.createProgram(vertexShader, fragmentShader);
+
+        const vertexShaderMou = this.createShader(this.gl.VERTEX_SHADER, vertexShaderMouse);
+        const fragmentShaderMou = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderMouse);
+
+        this.shaderProgramMouse = this.createProgram(vertexShaderMou, fragmentShaderMou);
 
         const vertices = [
             -0.5, 0.5,
@@ -138,6 +140,11 @@ class WebGLRenderer {
             .setParticleSize(1500)
             .shuffleParticles(2500, 2000, 2500, 2500);
 
+        this.buildingRenderer = new buildingRenderer(this);
+
+        this.MouseOverlay = new MouseOverlay(this)
+            .createOverlay();
+
     }
 
     renderAstroidTerrain() {
@@ -150,7 +157,6 @@ class WebGLRenderer {
 
         this.terrainOverlay["craters"]
             .drawTerrainOverlay();
-
     }
 
     getMineralInfos(mineralDeposites) {
@@ -256,7 +262,7 @@ class WebGLRenderer {
         }
     }
 
-    addRectangleAtMousePosition(event, textureID) {
+    addRectangleAtMousePosition(event, building) {
         const rect = this.canvas.getBoundingClientRect();
         let mouseX = event.clientX - rect.left;
         let mouseY = event.clientY - rect.top;
@@ -264,55 +270,7 @@ class WebGLRenderer {
         mouseX = Math.round(mouseX / (this.scale / 2)) * (this.scale / 2);
         mouseY = Math.round(mouseY / (this.scale / 2)) * (this.scale / 2);
 
-        const prog = 0.0;
-
-        this.addRectangle(this.counter, mouseX - (this.scale / 4), mouseY - (this.scale / 4), this.scale, textureID, prog);
-    }
-
-    addRectangle(id, x, y, size, textureID, prog) {
-        this.setRectangle(id, x, y, size, textureID, prog);
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
-        this.counter++;
-    }
-
-    setRectangle(id, x, y, size, textureID, prog) {
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureID]);
-        const canvas = this.canvas;
-        const x1 = ((x - canvas.width / 2) / (canvas.width / 2));
-        const y1 = ((canvas.height / 2 - y) / (canvas.height / 2));
-        const x2 = (x1 + (size / canvas.width));
-        const y2 = (y1 - (size / canvas.height));
-
-        const defaultColor = [1.0, 1.0, 1.0, 1.0]; // Default color is white
-
-        this.rectInfos[id] = [x, y, size, textureID, prog];
-
-        const position = [
-            x1, y1, 0.0 + this.rectInfos[id][4], 0.0, ...defaultColor,
-            x1, y2, 0.0 + this.rectInfos[id][4], 1.0, ...defaultColor,
-            x2, y1, 0.2 + this.rectInfos[id][4], 0.0, ...defaultColor,
-            x2, y2, 0.2 + this.rectInfos[id][4], 1.0, ...defaultColor
-        ];
-
-        this.gl.vertexAttribPointer(this.positionAttributeLocation, 2, this.gl.FLOAT, false, 32, 0);
-        this.gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, this.gl.FLOAT, false, 32, 8);
-        this.gl.vertexAttribPointer(this.colorAttributeLocation, 4, this.gl.FLOAT, false, 32, 16);
-        this.gl.enableVertexAttribArray(this.positionAttributeLocation);
-        this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
-        this.gl.enableVertexAttribArray(this.colorAttributeLocation);
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(position), this.gl.STATIC_DRAW);
-    }
-
-    redrawRectangles() {
-        this.counter = 0;
-        for (let i = 0; i < this.rectInfos.length; i++) {
-            this.counter = i;
-            this.addRectangle(i, this.rectInfos[i][0], this.rectInfos[i][1], this.rectInfos[i][2], this.rectInfos[i][3], this.rectInfos[i][4]);
-        }
-    }
-
-    updateProgress(id, progress) {
-        this.rectInfos[id][4] = progress;
+        this.buildingRenderer.addBuilding(mouseX - (this.scale / 4), mouseY - (this.scale / 4), building);
     }
 
     updateFrame() {
@@ -326,7 +284,6 @@ class WebGLRenderer {
         this.renderAstroidTerrain();
 
         this.redrawLines();
-        this.redrawRectangles();
 
         for (let i = 0; i < this.shinyResourcesCounter; i++) {
             this.particleSystems[`glowores${i}`]
@@ -334,9 +291,13 @@ class WebGLRenderer {
                 .drawParticles();
         }
 
+        this.buildingRenderer.drawBuilding();
+
         this.particleSystems["clouds"]
             .addWind(10, 0)
             .drawParticles();
+
+        this.MouseOverlay.drawOverlay();
     }
 
     createShader(type, source) {

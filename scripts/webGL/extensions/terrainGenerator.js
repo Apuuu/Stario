@@ -75,10 +75,8 @@ class TerrainGenerator {
                 positions.push(
                     x1, y1, 0.0, 0.0, ...bottomLeftColor, //bottom left
                     x1, y2, 0.0, 1.0, ...topLeftColor, //top left
-                    x2, y1, start + Math.random() * end, 0.0, ...bottomRightColor //bottom right
-                );
-
-                positions.push(
+                    x2, y1, start + Math.random() * end, 0.0, ...bottomRightColor, //bottom right
+                    
                     x1, y2, 0.0, 1.0, ...topLeftColor, //top left
                     x2, y1, start + Math.random() * end, 0.0, ...bottomRightColor, //bottom right
                     x2, y2, start + Math.random() * end, 1.0, ...topRightColor //top right

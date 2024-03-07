@@ -104,9 +104,9 @@ class UI {
         const rect = $("#glCanvas")[0].getBoundingClientRect();
         this.mouseX = event.clientX - rect.left;
         this.mouseY = event.clientY - rect.top;
-
-        for (let i = 0; i < renderer.rectInfos.length; i++) {
-            if (this.mouseX > renderer.rectInfos[i][0] && this.mouseX < renderer.rectInfos[i][0] + 50 && this.mouseY > renderer.rectInfos[i][1] && this.mouseY < renderer.rectInfos[i][1] + 50) {
+        console.log(this.mouseX, this.mouseY);
+        for (let i = 0; i < renderer.buildingRenderer.buildings.length; i++) {
+            if (this.mouseX > renderer.buildingRenderer.buildings[i].x && this.mouseX < renderer.buildingRenderer.buildings[i].x + 50 && this.mouseY > renderer.buildingRenderer.buildings[i].y && this.mouseY < renderer.buildingRenderer.buildings[i].y + 50) {
                 console.log(i);
                 return i;
             }
@@ -118,8 +118,8 @@ class UI {
         this.mouseX = event.clientX - rect.left;
         this.mouseY = event.clientY - rect.top;
 
-        for (let i = 0; i < renderer.rectInfos.length; i++) {
-            if (this.mouseX > renderer.rectInfos[i][0] && this.mouseX < renderer.rectInfos[i][0] + 50 && this.mouseY > renderer.rectInfos[i][1] && this.mouseY < renderer.rectInfos[i][1] + 50) {
+        for (let i = 0; i < renderer.buildingRenderer.buildings.length; i++) {
+            if (this.mouseX > renderer.buildingRenderer.buildings[i].x && this.mouseX < renderer.buildingRenderer.buildings[i].x + 50 && this.mouseY > renderer.buildingRenderer.buildings[i].y && this.mouseY < renderer.buildingRenderer.buildings[i].y + 50) {
                 return i+1;
             }
         }

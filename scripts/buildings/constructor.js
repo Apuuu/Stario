@@ -27,14 +27,14 @@ class Constructor {
         }
     }
 
-    setupConstructor(materialName) {
+    setupBuilding(materialName) {
         let output = craftingData.find(output => output.outputMaterial === materialName);
         this.productionMaterial = output.outputMaterial;
         this.workload = output.workload;
         this.craftingMaterials = output.inputMaterials;
     }
 
-    activateConstructor(id, renderer, tracker) {
+    activateBuilding(id, renderer, tracker) {
         if (!this.isRunning) {
             this.isRunning = true;
             if (this.progress < this.workload) {
@@ -58,11 +58,8 @@ class Constructor {
                     }
 
                     if (this.outputConnection) {
-                        if (this.outputConnection.name != "Storage" && this.internalInventory[this.productionMaterial] > 0) {
+                        if (this.internalInventory[this.productionMaterial] > 0) {
                             this.outputConnection.internalInventory[this.productionMaterial] += 1;
-                            this.internalInventory[this.productionMaterial] -= 1;
-                        } else if (this.outputConnection.name === "Storage" && this.internalInventory[this.productionMaterial] > 0) {
-                            this.outputConnection[this.productionMaterial] += 1;
                             this.internalInventory[this.productionMaterial] -= 1;
                         }
                     }

@@ -19,16 +19,28 @@ class Main {
         this.mineralDepositesGenerator = new mineralDepositesGenerator();
         this.progressTracker = new ProgressTracker();
         this.deposites = [];
-        this.furnaces = [];
-        this.miners = [];
-        this.storages = [];
-        this.constructors = [];
-        this.resourceTransporters = [];
-        this.splitters = [];
         this.connections = [];
         this.connectionDistance = 500;
         this.buildingsMap = new Map();
+        this.classes = {
+            Miner: Miner,
+            Furnace: Furnace,
+            StorageCrate: StorageCrate,
+            Constructor: Constructor,
+            ResourceTransporter: ResourceTransporter,
+            ItemSplitter: ItemSplitter,
+        }
 
+        this.buildingsNames = new Map();
+
+        this.buildingsNames.set(1, "Furnace");
+        this.buildingsNames.set(2, "Miner");
+        this.buildingsNames.set(3, "StorageCrate");
+        this.buildingsNames.set(4, "Selector");
+        this.buildingsNames.set(5, "Connector");
+        this.buildingsNames.set(6, "Constructor");
+        this.buildingsNames.set(7, "ResourceTransporter");
+        this.buildingsNames.set(8, "ItemSplitter");
     }
 
     init() {
@@ -36,7 +48,7 @@ class Main {
         this.webGLRenderer.initwebGLRenderer();
 
         this.mineralDepositesGenerator.generateDepositRandom(166, this.webGLRenderer);
-        
+
         this.webGLRenderer.createMineralDepositsBuffer("mineralVerts", "mineralBuffer", "mineralCounter");
     }
 
@@ -46,9 +58,34 @@ $(document).ready(() => {
     const main = new Main();
     main.init();
 
-    setInterval(() => {
-        main.webGLRenderer.updateFrame();
-    }, 100);
+    let then = 0;
+    let frameCount = 0;
+    let lastFPSUpdate = 0;
+    const fpsLimit = 10;
+    const interval = 1000 / fpsLimit;
+
+    function updateFrame(now) {
+        const elapsed = now - then;
+
+        if (elapsed > interval) {
+            then = now - (elapsed % interval);
+
+            main.webGLRenderer.updateFrame();
+
+            frameCount++;
+
+            if (now - lastFPSUpdate > 1000) {
+                const fps = frameCount;
+                //console.log(`Current FPS: ${fps}`);
+
+                frameCount = 0;
+                lastFPSUpdate = now;
+            }
+        }
+
+        requestAnimationFrame(updateFrame);
+    }
+    requestAnimationFrame(updateFrame);
 
     function saveGameState() {
 
@@ -193,25 +230,6 @@ $(document).ready(() => {
         localStorage.removeItem("gameState");
     }
 
-    function placeTransporter() {
-        main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
-        main.resourceTransporters[main.webGLRenderer.counter] = new ResourceTransporter();
-        main.resourceTransporters[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
-        main.resourceTransporters[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-        main.resourceTransporters[main.webGLRenderer.counter].activateResourceTransporter();
-        main.buildingsMap.set(main.webGLRenderer.counter, main.resourceTransporters[main.webGLRenderer.counter]);
-    }
-
-    function placeConstructor() {
-        main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
-        main.constructors[main.webGLRenderer.counter] = new Constructor();
-        main.constructors[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
-        main.constructors[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-        main.constructors[main.webGLRenderer.counter].setupConstructor(main.UI.craftID);
-        main.constructors[main.webGLRenderer.counter].activateConstructor(main.webGLRenderer.counter - 1, main.webGLRenderer);
-        main.buildingsMap.set(main.webGLRenderer.counter, main.constructors[main.webGLRenderer.counter]);
-    }
-
     let selectedBuilding = null;
     let firstSelection = null;
     let secondSelection = null;
@@ -223,7 +241,6 @@ $(document).ready(() => {
             selectionStep++;
         } else if (selectionStep === 1) {
             secondSelection = main.UI.getBuildingIDfromMouse(event, main.webGLRenderer, main.buildingsMap);
-
             function calculateDistance(x1, y1, x2, y2) {
                 const dx = x2 - x1;
                 const dy = y2 - y1;
@@ -237,8 +254,6 @@ $(document).ready(() => {
             const secondSelectionY = main.buildingsMap.get(secondSelection).posY + (main.webGLRenderer.scale / 4);
 
             const distance = calculateDistance(firstSelectionX, firstSelectionY, secondSelectionX, secondSelectionY);
-
-            console.log(main.buildingsMap.get(firstSelection).outputConnectionID2);
 
             if (main.buildingsMap.get(firstSelection).name === "resourceTransporter" && main.buildingsMap.get(secondSelection).name === "resourceTransporter") {
                 if ((distance < main.connectionDistance * 4) && firstSelection !== secondSelection) {
@@ -276,47 +291,45 @@ $(document).ready(() => {
         main.UI.getBuildingIDfromMouse(event, main.webGLRenderer, main.buildingsMap);
     }
 
-    function placeStorageCrate() {
-        main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
-        main.storages[main.webGLRenderer.counter] = new StorageCrate();
-        main.storages[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
-        main.storages[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-        main.storages[main.webGLRenderer.counter].activateStorageCrate();
-        main.buildingsMap.set(main.webGLRenderer.counter, main.storages[main.webGLRenderer.counter]);
-    }
+    function placeBuilding(buildingName) {
 
-    function placeSplitter() {
-        main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
-        main.splitters[main.webGLRenderer.counter] = new ItemSplitter();
-        main.splitters[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
-        main.splitters[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-        main.splitters[main.webGLRenderer.counter].activateSplitter(main.webGLRenderer.counter - 1, main.webGLRenderer);
-        main.buildingsMap.set(main.webGLRenderer.counter, main.splitters[main.webGLRenderer.counter]);
-    }
+        const excludedBuildings = ["Selector", "Connector"];
 
-    function placeMiner() {
-        const ore = main.mineralDepositesGenerator.isDepositAtPosition(event);
+        if (!excludedBuildings.includes(buildingName)) {
+            try {
+                if (main[`${buildingName}s`] === undefined) {
+                    main[`${buildingName}s`] = [];
+                }
 
-        if (ore !== null) {
-            main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
-            main.miners[main.webGLRenderer.counter] = new Miner();
-            main.miners[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
-            main.miners[main.webGLRenderer.counter].setupMiner(ore.oreType);
-            main.miners[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-            main.miners[main.webGLRenderer.counter].setEfficiency(1);
-            main.miners[main.webGLRenderer.counter].activateMiner(main.webGLRenderer.counter - 1, main.webGLRenderer, main.progressTracker);
-            main.buildingsMap.set(main.webGLRenderer.counter, main.miners[main.webGLRenderer.counter]);
+                const buildingConfigs = {
+                    Miner: () => main.mineralDepositesGenerator.isDepositAtPosition(event).oreType,
+                    Furnace: () => main.UI.smeltID,
+                    Constructor: () => main.UI.craftID,
+                    StorageCrate: () => null,
+                    ResourceTransporter: () => null,
+                    ItemSplitter: () => null,
+                }
+
+                let setupParam = buildingConfigs[buildingName]();
+
+                main.webGLRenderer.addRectangleAtMousePosition(event, buildingName);
+
+                main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter] = new main.classes[buildingName]();
+                main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].setID(main.webGLRenderer.buildingRenderer.counter);
+                main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].setPos(main.webGLRenderer.buildingRenderer.buildings[main.webGLRenderer.buildingRenderer.counter - 1].x, main.webGLRenderer.buildingRenderer.buildings[main.webGLRenderer.buildingRenderer.counter - 1].y);
+                main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].setupBuilding(setupParam);
+                main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].activateBuilding(main.webGLRenderer.buildingRenderer.counter - 1, main.webGLRenderer, main.progressTracker);
+                main.buildingsMap.set(main.webGLRenderer.buildingRenderer.counter, main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter]);
+            } catch (error) {
+                console.log(error);
+            }
+        } else {
+            if (buildingName === "Selector") {
+                displayBuildingInfos();
+            } else if (buildingName === "Connector") {
+                createConnection();
+            }
         }
-    }
-
-    function placeFurnace() {
-        main.webGLRenderer.addRectangleAtMousePosition(event, main.webGLRenderer.buildingIDMap.get(main.UI.BuildingID));
-        main.furnaces[main.webGLRenderer.counter] = new Furnace();
-        main.furnaces[main.webGLRenderer.counter].setID(main.webGLRenderer.counter);
-        main.furnaces[main.webGLRenderer.counter].setPos(main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][0], main.webGLRenderer.rectInfos[main.webGLRenderer.counter - 1][1]);
-        main.furnaces[main.webGLRenderer.counter].setupFurnace(main.UI.smeltID);
-        main.furnaces[main.webGLRenderer.counter].activateFurnace(main.webGLRenderer.counter - 1, main.webGLRenderer);
-        main.buildingsMap.set(main.webGLRenderer.counter, main.furnaces[main.webGLRenderer.counter]);
     }
 
     $(".funcbut").click(function () {
@@ -347,25 +360,12 @@ $(document).ready(() => {
         console.log(main.progressTracker.internalInventory);
     });
 
-    const placeBuildings = {
-        1: placeFurnace,
-        2: placeMiner,
-        3: placeStorageCrate,
-        4: displayBuildingInfos,
-        5: createConnection,
-        6: placeConstructor,
-        7: placeTransporter,
-        8: placeSplitter
-    };
-
     $("#glCanvas").on("click", function (event) {
-        const action = placeBuildings[main.UI.BuildingID];
-        if (action) {
-            action();
-        }
+        console.log(main.buildingsNames.get(main.UI.BuildingID));
+        placeBuilding(main.buildingsNames.get(main.UI.BuildingID));
     });
 
     $("#glCanvas").mousemove(function (event) {
-        main.UI.changeVals(event, main.webGLRenderer.counter, main.storgeUnit);
+        main.UI.changeVals(event, main.webGLRenderer.buildingRenderer.counter, main.storgeUnit);
     });
 });

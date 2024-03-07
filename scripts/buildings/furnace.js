@@ -20,7 +20,7 @@ class Furnace {
         this.progressSteps = data.progressSteps || 0;
     }
 
-    setupFurnace(materialName) {
+    setupBuilding(materialName) {
         let output = smeltingData.find(output => output.outputMaterial === materialName);
         this.productionMaterial = output.outputMaterial;
         this.workload = output.workload;
@@ -36,7 +36,7 @@ class Furnace {
         }
     }
 
-    activateFurnace(id, renderer, tracker) {
+    activateBuilding(id, renderer, tracker) {
 
         if (!this.isRunning) {
             this.isRunning = true;
@@ -48,7 +48,7 @@ class Furnace {
                     if (allMaterialsPresent) {
                         this.progress = this.progress + this.speed;
                         this.setProgressSteps();
-                        renderer.updateProgress(id, this.progressSteps);
+                        renderer.buildingRenderer.setProgress(id, this.progressSteps);
                         if (this.progress >= this.workload) {
 
                             this.internalInventory[this.productionMaterial] += this.outputAmount;

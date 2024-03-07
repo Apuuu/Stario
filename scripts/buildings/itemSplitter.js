@@ -15,7 +15,12 @@ class ItemSplitter {
         this.progress = 0;
     }
 
-    activateSplitter(id, renderer) {
+    setupBuilding() {
+        console.log("Empty setupBuilding function");
+    }
+
+
+    activateBuilding(id, renderer, tracker) {
         this.interval = setInterval(() => {
             if (this.outputConnection && this.outputConnection2) {
                 this.internalInventory.resources.forEach(resource => {
@@ -33,7 +38,7 @@ class ItemSplitter {
                 });
             }
 
-            renderer.updateProgress(id, this.progress);
+            renderer.buildingRenderer.setProgress(id, this.progress);
         }, 100);
     }
 

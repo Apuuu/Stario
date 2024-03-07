@@ -93,7 +93,7 @@ class ParticleSystem {
                 x1, y1, 0.0, 0.0, ...this.color,
                 x1, y2, 0.0, 1, ...this.color,
                 x2, y1, 1, 0.0, ...this.color,
-
+                
                 x1, y2, 0.0, 1, ...this.color,
                 x2, y1, 1, 0.0, ...this.color,
                 x2, y2, 1, 1, ...this.color

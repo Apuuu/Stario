@@ -24,7 +24,7 @@ class Miner {
         this.speed = efficiency;
     }
 
-    setupMiner(oreName) {
+    setupBuilding(oreName) {
 
         let ore = oreData.find(ore => ore.oretype === oreName);
         this.oreType = ore.oretype;
@@ -41,7 +41,7 @@ class Miner {
         }
     }
 
-    activateMiner(id, renderer, tracker) {
+    activateBuilding(id, renderer, tracker) {
         if (!this.isRunning) {
             this.isRunning = true;
             if (this.progress < this.workload) {
@@ -49,7 +49,7 @@ class Miner {
                     if (this.internalInventory[this.oreType] <= this.internalInventory.Capacity) {
                         this.progress = this.progress + this.speed;
                         this.setProgressSteps();
-                        renderer.updateProgress(id, this.progressSteps);
+                        renderer.buildingRenderer.setProgress(id, this.progressSteps);
                         if (this.progress >= this.workload) {
                             this.internalInventory[this.oreType] += 1;
                             this.progress = 0;
@@ -62,7 +62,7 @@ class Miner {
                     }
 
                     if (this.outputConnection && this.internalInventory[this.oreType] >= this.transferSpeed) {
-                        this.outputConnection[this.oreType] += this.transferSpeed;
+                        this.outputConnection.internalInventory[this.oreType] += this.transferSpeed;
                         this.internalInventory[this.oreType] -= this.transferSpeed;
                     }
 
