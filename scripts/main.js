@@ -41,6 +41,7 @@ class Main {
         this.buildingsNames.set(6, "Constructor");
         this.buildingsNames.set(7, "ResourceTransporter");
         this.buildingsNames.set(8, "ItemSplitter");
+
     }
 
     init() {
@@ -55,6 +56,7 @@ class Main {
 }
 
 $(document).ready(() => {
+
     const main = new Main();
     main.init();
 
@@ -88,146 +90,35 @@ $(document).ready(() => {
     requestAnimationFrame(updateFrame);
 
     function saveGameState() {
-
-        const gameState = {
-            webglbuildings: main.webGLRenderer.rectInfos,
-            webgllines: main.webGLRenderer.lineInfos,
-            miners: main.miners,
-            furnaces: main.furnaces,
-            storages: main.storages,
-            constructors: main.constructors,
-            transporters: main.resourceTransporters,
-            splitters: main.splitters,
+        const data = {
+            keys: 'bruh, kekw',
+            data: {
+                bruh: 1,
+                kekw: 5
+            },
         };
 
-        const gameStateStr = JSON.stringify(gameState);
-
-        localStorage.setItem("gameState", gameStateStr);
+        $.ajax({
+            url: "http://localhost:3000/insert-data/test/test",
+            type: 'POST',
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            success: function (response) {
+                console.log(response);
+                console.log("Inshallah, gamestate saved!        -Apu");
+            },
+            error: function (error) {
+                console.error('Error:', error);
+            }
+        });
     }
 
     function loadGameState() {
 
-        const gameStateStr = localStorage.getItem("gameState");
-
-        if (gameStateStr) {
-            const gameState = JSON.parse(gameStateStr);
-
-            main.webGLRenderer.rectInfos = gameState.webglbuildings;
-            main.webGLRenderer.lineInfos = gameState.webgllines;
-
-            if (gameState.miners) {
-                main.miners = gameState.miners.map((data, index) => {
-                    if (index === 0) {
-                        return null;
-                    } else if (data !== null) {
-                        const newMiner = new Miner(data);
-                        newMiner.internalInventory = data.internalInventory;
-                        newMiner.isRunning = false;
-                        newMiner.activateMiner(index - 1, main.webGLRenderer, main.progressTracker);
-                        main.buildingsMap.set(index, newMiner);
-                        return newMiner
-                    }
-                });
-            } else {
-                main.miners = [];
-            }
-
-            if (gameState.furnaces) {
-                main.furnaces = gameState.furnaces.map((data, index) => {
-                    if (index === 0) {
-                        return null;
-                    } else if (data !== null) {
-                        const newFurnace = new Furnace(data);
-                        newFurnace.internalInventory = data.internalInventory;
-                        newFurnace.isRunning = false;
-                        newFurnace.activateFurnace(index - 1, main.webGLRenderer, main.progressTracker);
-                        main.buildingsMap.set(index, newFurnace);
-                        return newFurnace
-                    }
-                });
-            } else {
-                main.furnaces = [];
-            }
-
-            if (gameState.storages) {
-                main.storages = gameState.storages.map((data, index) => {
-                    if (index === 0) {
-                        return null;
-                    } else if (data !== null) {
-                        const newStorage = new StorageCrate(data);
-                        newStorage.activateStorageCrate();
-                        main.buildingsMap.set(index, newStorage);
-                        return newStorage
-                    }
-                });
-            } else {
-                main.storages = [];
-            }
-
-            if (gameState.constructors) {
-                main.constructors = gameState.constructors.map((data, index) => {
-                    if (index === 0) {
-                        return null;
-                    } else if (data !== null) {
-                        const newConstructor = new Constructor(data);
-                        newConstructor.internalInventory = data.internalInventory;
-                        newConstructor.isRunning = false;
-                        newConstructor.activateConstructor(index - 1, main.webGLRenderer, main.progressTracker);
-                        main.buildingsMap.set(index, newConstructor);
-                        return newConstructor
-                    }
-                });
-            } else {
-                main.constructors = [];
-            }
-
-            if (gameState.transporters) {
-                main.resourceTransporters = gameState.transporters.map((data, index) => {
-                    if (index === 0) {
-                        return null;
-                    } else if (data !== null) {
-                        const newTransporter = new ResourceTransporter(data);
-                        newTransporter.internalInventory = data.internalInventory;
-                        newTransporter.activateResourceTransporter();
-                        main.buildingsMap.set(index, newTransporter);
-                        return newTransporter
-                    }
-                });
-            } else {
-                main.transporters = [];
-            }
-
-            if (gameState.splitters) {
-                main.splitters = gameState.splitters.map((data, index) => {
-                    if (index === 0) {
-                        return null;
-                    } else if (data !== null) {
-                        const newSplitter = new ItemSplitter(data);
-                        newSplitter.activateSplitter(index - 1, main.webGLRenderer);
-                        main.buildingsMap.set(index, newSplitter);
-                        return newSplitter
-                    }
-                });
-            } else {
-                main.splitters = [];
-            }
-        }
-
-        for (const [{ }, value] of main.buildingsMap) {
-            if (value !== null) {
-                if (value.outputConnectionID !== null) {
-                    value.outputConnection = main.buildingsMap.get(value.outputConnectionID);
-                }
-
-                if (value.outputConnectionID2 !== null) {
-                    value.outputConnection2 = main.buildingsMap.get(value.outputConnectionID2);
-                }
-            }
-        }
     }
 
     function clearGameState() {
-        localStorage.removeItem("gameState");
+
     }
 
     let selectedBuilding = null;
@@ -291,7 +182,7 @@ $(document).ready(() => {
         main.UI.getBuildingIDfromMouse(event, main.webGLRenderer, main.buildingsMap);
     }
 
-    function placeBuilding(buildingName) {
+    function placeBuilding(buildingName, data) {
 
         const excludedBuildings = ["Selector", "Connector"];
 
@@ -302,19 +193,28 @@ $(document).ready(() => {
                 }
 
                 const buildingConfigs = {
-                    Miner: () => main.mineralDepositesGenerator.isDepositAtPosition(event).oreType,
+                    Miner: () => {
+                        if (data === undefined) {
+                            return main.mineralDepositesGenerator.isDepositAtPosition(event).oreType;
+                        } else {
+                            return data.oreType;
+                        }
+                    },
                     Furnace: () => main.UI.smeltID,
                     Constructor: () => main.UI.craftID,
                     StorageCrate: () => null,
                     ResourceTransporter: () => null,
                     ItemSplitter: () => null,
                 }
-
                 let setupParam = buildingConfigs[buildingName]();
 
-                main.webGLRenderer.addRectangleAtMousePosition(event, buildingName);
+                if (data === undefined) {
+                    main.webGLRenderer.addRectangleAtMousePosition(event, buildingName);
+                } else {
+                    main.webGLRenderer.addRectangleAtPosition(data.posX, data.posY, buildingName);
+                }
 
-                main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter] = new main.classes[buildingName]();
+                main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter] = new main.classes[buildingName](data);
                 main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].setID(main.webGLRenderer.buildingRenderer.counter);
                 main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].setPos(main.webGLRenderer.buildingRenderer.buildings[main.webGLRenderer.buildingRenderer.counter - 1].x, main.webGLRenderer.buildingRenderer.buildings[main.webGLRenderer.buildingRenderer.counter - 1].y);
                 main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].setupBuilding(setupParam);
@@ -338,7 +238,6 @@ $(document).ready(() => {
 
     $("#saveBut").click(function () {
         saveGameState();
-        console.log("Inshallah, gamestate saved!        -Apu");
     });
 
     $("#loadBut").click(function () {

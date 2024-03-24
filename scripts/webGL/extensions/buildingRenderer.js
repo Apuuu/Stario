@@ -81,7 +81,7 @@ class buildingRenderer {
         this.gl.enableVertexAttribArray(this.texCoordAttributeLocation);
         this.gl.enableVertexAttribArray(this.colorAttributeLocation);
 
-        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.counter * 6);
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.buildings.length * 6);
 
         return this;
     }

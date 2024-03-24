@@ -27,12 +27,12 @@ class WebGLRenderer {
         this.particleSystems = [];
         this.terrain = [];
         this.terrainOverlay = [];
-        this.layersOfBuildings = 5;
     }
 
     async loadTexture(id, url) {
         const image = new Image();
         image.src = url;
+
         await new Promise((resolve, reject) => {
             image.onload = resolve;
             image.onerror = reject;
@@ -72,7 +72,7 @@ class WebGLRenderer {
         this.loadTexture("splitterprogressbar", "scripts/buildings/img/splitter/splitter.png");
         this.loadTexture("particle", "scripts/buildings/img/terrain/particle.png");
         this.loadTexture("buildingsAtlas", "scripts/buildings/img/buildings.png");
-
+        
         const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderS);
         const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderS);
 
@@ -273,6 +273,14 @@ class WebGLRenderer {
         this.buildingRenderer.addBuilding(mouseX - (this.scale / 4), mouseY - (this.scale / 4), building);
     }
 
+    addRectangleAtPosition(x, y, building) {
+
+        let mouseX = Math.round(x / (this.scale / 2)) * (this.scale / 2);
+        let mouseY = Math.round(y / (this.scale / 2)) * (this.scale / 2);
+
+        this.buildingRenderer.addBuilding(mouseX - (this.scale / 4), mouseY - (this.scale / 4), building);
+    }
+
     updateFrame() {
 
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
@@ -291,13 +299,15 @@ class WebGLRenderer {
                 .drawParticles();
         }
 
+        this.MouseOverlay.drawOverlay();
+
         this.buildingRenderer.drawBuilding();
 
         this.particleSystems["clouds"]
             .addWind(10, 0)
             .drawParticles();
 
-        this.MouseOverlay.drawOverlay();
+
     }
 
     createShader(type, source) {

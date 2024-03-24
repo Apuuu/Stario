@@ -31,6 +31,8 @@ export const fragmentShaderMouse = `
 
         if (sdf < 0.001 && sdf > 0.0008) {
             color = vec4(1.0, 1.0, 1.0, 1.0);
+        }else if(sdf < 0.0008){
+            color = vec4(1.0, 1.0, 1.0, 0.3);
         }else{
             color = vec4(1.0, 1.0, 1.0, 0.0);
         }
