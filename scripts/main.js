@@ -90,18 +90,29 @@ $(document).ready(() => {
     requestAnimationFrame(updateFrame);
 
     function saveGameState() {
-        const data = {
-            keys: 'bruh, kekw',
-            data: {
-                bruh: 1,
-                kekw: 5
-            },
-        };
+        const keys = "buildingID, buildingName, buildingProduction, buildingPosition, buildingConnectionID, buildingInventory, buildingData";
+        let dataArray = [];
 
+        for (let i = 1; i < main.buildingsMap.size + 1; i++) {
+            const data = {
+                keys: keys,
+                data: {
+                    buildingID: main.buildingsMap.get(i).buildingID,
+                    buildingName: main.buildingsMap.get(i).name,
+                    buildingProduction: main.buildingsMap.get(i).productionMaterial || null,
+                    buildingsPosition: JSON.stringify({ x: main.buildingsMap.get(i).posX, y: main.buildingsMap.get(i).posY }),
+                    buildingConnectionID: main.buildingsMap.get(i).outputConnectionID || null,
+                    buildingInventory: JSON.stringify(main.buildingsMap.get(i).internalInventory),
+                    buildingData: JSON.stringify(main.buildingsMap.get(i))
+                },
+            };
+            dataArray.push(data);
+        }
+        console.log(JSON.stringify(dataArray).length/1024+"KB");
         $.ajax({
             url: "http://localhost:3000/insert-data/test/test",
             type: 'POST',
-            data: JSON.stringify(data),
+            data: JSON.stringify(dataArray),
             contentType: 'application/json',
             success: function (response) {
                 console.log(response);
@@ -114,7 +125,22 @@ $(document).ready(() => {
     }
 
     function loadGameState() {
-
+        $.ajax({
+            url: "http://localhost:3000/select-all/test/test",
+            type: 'GET',
+            contentType: 'application/json',
+            success: function (response) {
+                console.log(response);
+                for (let i = 0; i < response.length; i++) {
+                    const data = JSON.parse(response[i].buildingData);
+                    placeBuilding(response[i].buildingName, data);
+                }
+                console.log("Inshallah, gamestate loaded!        -Apu");
+            },  
+            error: function (error) {
+                console.error('Error:', error);
+            }
+        });
     }
 
     function clearGameState() {
@@ -197,7 +223,7 @@ $(document).ready(() => {
                         if (data === undefined) {
                             return main.mineralDepositesGenerator.isDepositAtPosition(event).oreType;
                         } else {
-                            return data.oreType;
+                            return data.productionMaterial;
                         }
                     },
                     Furnace: () => main.UI.smeltID,
@@ -215,11 +241,17 @@ $(document).ready(() => {
                 }
 
                 main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter] = new main.classes[buildingName](data);
+                main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].isRunning = false;
                 main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].setID(main.webGLRenderer.buildingRenderer.counter);
                 main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].setPos(main.webGLRenderer.buildingRenderer.buildings[main.webGLRenderer.buildingRenderer.counter - 1].x, main.webGLRenderer.buildingRenderer.buildings[main.webGLRenderer.buildingRenderer.counter - 1].y);
                 main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].setupBuilding(setupParam);
                 main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].activateBuilding(main.webGLRenderer.buildingRenderer.counter - 1, main.webGLRenderer, main.progressTracker);
                 main.buildingsMap.set(main.webGLRenderer.buildingRenderer.counter, main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter]);
+
+                if(data !== undefined){
+                    main[`${buildingName}s`][main.webGLRenderer.buildingRenderer.counter].internalInventory = data.internalInventory;
+                }
+
             } catch (error) {
                 console.log(error);
             }

@@ -45,7 +45,7 @@ class Constructor {
                     if (allMaterialsPresent) {
                         this.progress = this.progress + this.speed;
                         this.setProgressSteps();
-                        renderer.updateProgress(id, this.progressSteps);
+                        renderer.buildingRenderer.setProgress(id, this.progressSteps);
                         if (this.progress >= this.workload) {
 
                             this.internalInventory[this.productionMaterial] += 1;

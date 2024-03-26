@@ -80,7 +80,6 @@ class Furnace {
         this.posY = y;
     }
 
-
     deactivateFurnace() {
         if (this.isRunning) {
             this.isRunning = false;

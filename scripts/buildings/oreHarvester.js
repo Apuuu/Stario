@@ -10,7 +10,7 @@ class Miner {
         this.posX = data.posX || 0;
         this.posY = data.posY || 0;
         this.speed = data.speed || 10;
-        this.oreType = data.oreType || "iron";
+        this.productionMaterial = data.productionMaterial || "iron";
         this.upgradeLevel = data.upgradeLevel || 1;
         this.workload = data.workload || 0;
         this.internalInventory = new Storage(data.internalInventory || {});
@@ -27,7 +27,7 @@ class Miner {
     setupBuilding(oreName) {
 
         let ore = oreData.find(ore => ore.oretype === oreName);
-        this.oreType = ore.oretype;
+        this.productionMaterial = ore.oretype;
         this.workload = ore.workload;
         this.weight = ore.weight;
 
@@ -46,24 +46,24 @@ class Miner {
             this.isRunning = true;
             if (this.progress < this.workload) {
                 this.interval = setInterval(() => {
-                    if (this.internalInventory[this.oreType] <= this.internalInventory.Capacity) {
+                    if (this.internalInventory[this.productionMaterial] <= this.internalInventory.Capacity) {
                         this.progress = this.progress + this.speed;
                         this.setProgressSteps();
                         renderer.buildingRenderer.setProgress(id, this.progressSteps);
                         if (this.progress >= this.workload) {
-                            this.internalInventory[this.oreType] += 1;
+                            this.internalInventory[this.productionMaterial] += 1;
                             this.progress = 0;
 
-                            tracker.internalInventory[this.oreType] += this.transferSpeed;
+                            tracker.internalInventory[this.productionMaterial] += this.transferSpeed;
                         }
                     } else {
                         this.deactivateMiner();
                         clearInterval(this.interval);
                     }
 
-                    if (this.outputConnection && this.internalInventory[this.oreType] >= this.transferSpeed) {
-                        this.outputConnection.internalInventory[this.oreType] += this.transferSpeed;
-                        this.internalInventory[this.oreType] -= this.transferSpeed;
+                    if (this.outputConnection && this.internalInventory[this.productionMaterial] >= this.transferSpeed) {
+                        this.outputConnection.internalInventory[this.productionMaterial] += this.transferSpeed;
+                        this.internalInventory[this.productionMaterial] -= this.transferSpeed;
                     }
 
                 }, 100);

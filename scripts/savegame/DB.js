@@ -30,21 +30,36 @@ class DB {
         });
     }
 
-    addColumn(database, table, columnname, type) {
-        this.connection.query(`ALTER TABLE ${database}.${table} ADD COLUMN ${columnname} ${type}`, (err, result) => {
+    insertData(database, table, keys, data) {
+        const values = Object.values(data).map(value =>
+            value === null || value === undefined ? 'NULL' :
+                typeof value === 'string' ? `'${value}'` : value
+        ).join(', ');
+
+        this.connection.query(`INSERT INTO ${database}.${table} (${keys}) VALUES (${values})`, (err, result) => {
             if (err) throw err;
-            console.log("Column added");
         });
     }
 
-    insertData(database, table, keys, data) {
-        const values = Object.values(data).map(value => 
-            typeof value === 'string' ? `'${value}'` : value
-        ).join(', ');
-    
-        this.connection.query(`INSERT INTO ${database}.${table} (${keys}) VALUES (${values})`, (err, result) => {
-            if (err) throw err;
-            console.log("Data inserted");
+    selectDataBybuildingID(database, table, id) {
+        return new Promise((resolve, reject) => {
+            this.connection.query(`SELECT * FROM ${database}.${table} WHERE buildingID = ${id}`, (err, result) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(result);
+            });
+        });
+    }
+
+    selectAllBuildings(database, table) {
+        return new Promise((resolve, reject) => {
+            this.connection.query(`SELECT * FROM ${database}.${table}`, (err, result) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(result);
+            });
         });
     }
 
@@ -52,13 +67,6 @@ class DB {
         this.connection.query(`DROP TABLE ${database}.${table}`, (err, result) => {
             if (err) throw err;
             console.log("Table dropped");
-        });
-    }
-
-    showDatabases() {
-        this.connection.query("SHOW DATABASES", (err, results) => {
-            if (err) throw err;
-            console.log("Databases:", results);
         });
     }
 
